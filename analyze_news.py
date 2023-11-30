@@ -45,6 +45,6 @@ class Analyze_news():
 
 
 #test = Analyze_news('AAPL', '2023-11-14', hour=13, log=1)
-test = Analyze_news('AAPL', '2023-11-14', hour=3, log=1)
+test = Analyze_news('AAPL', '2023-11-14', hour=13, log=1)
 average_score = test.analyze()
 print("\nAverage score: ", average_score)
