@@ -158,3 +158,9 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+NEWS_API_KEY.txt
+NewsData_API_key.txt
+NOVA_AI_API_KEY.txt
+OPENAI_API_KEY.txt
+Pawan_Osman_API_KEY.txt
