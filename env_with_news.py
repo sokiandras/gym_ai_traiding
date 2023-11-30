@@ -11,12 +11,12 @@ from analyze_news import Analyze_news
 
 class Env_with_news(gym.Env):
 
-    def __init__(self, symbol, start_date, end_date, balance, log, data_interval):
+    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
         self.log = log
-        self.data_interval = data_interval  #így kell kinézni "1h" (STRING!!!)
+        self.data_interval = data_interval_like_1h  #így kell kinézni "1h" (STRING!!!)
 
         self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)  # itt tölti le az adatokat
         self.stepnumber = len(self.data)
@@ -43,22 +43,45 @@ class Env_with_news(gym.Env):
 
         # a NewsAPI miatt nem lehet 1 hónapnál régebbre visszamenni
         current_date = datetime.datetime.now()
-        if (current_date - start_date) > 30:
-            raise ValueError("\nStart date is older than one month from the current date, so NewsAPI will not be able to get news")
+        #if (current_date - start_date) > 30:
+            #raise ValueError("\nStart date is older than one month from the current date, so NewsAPI will not be able to get news")
 
 
 
 
 
 
-    def hourly_news_analysis(self):
-        current_date = self.start_date
+    def news_analysis_in_given_interval(self):
+
+        start_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
+        current_date = start_date
 
         interval_in_int = int(self.data_interval[:-1])
+
         if self.data_interval.endswith('h'):
-            unit = 'h'
-        if self.data_interval.endswith('m'):
-            unit = 'minutes'
+            delta = datetime.timedelta(hours=interval_in_int)
+        elif self.data_interval.endswith('d'):
+            delta = datetime.timedelta(days=interval_in_int)
+        else:
+            if self.log <= 3:
+                print("\nThe interval is not correctly given (message from news_analysis_in_given_interval()")
+            return -1
+
+
+        while current_date <= end_date:
+            current_hour = current_date.strftime("%H")
+            current_date_string = current_date.strftime("%Y-%m-%d")
+
+            news_analyzer = Analyze_news(self.stock_symbol, current_date_string, hour=int(current_hour), log =self.log)
+            average_score = news_analyzer.analyze()
+
+            if self.log <= 3:
+                print(f"f\n\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score}")
+
+            current_date += delta
+
+
 
 
 

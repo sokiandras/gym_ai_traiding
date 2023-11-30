@@ -58,7 +58,7 @@ class News():
 
         response = self.session.get(url)
         news = response.json()
-        if self.log:
+        if self.log == 3:
             print("All news from the day: (given by NewsAPI) (message from search_news())\n")
             print(news)
 
@@ -71,17 +71,18 @@ class News():
                 self.filtered_article_urls.append(article.get('url'))
 
         if news['status'] == 'error':
-            if self.log:
+            if self.log == 3:
                 print("\nThere was some problem with NewsAPI news search (message from search_news())")
             return -1
 
 
         if not self.filtered_articles:
-            print("\nThere were no news in the given hour (message from search_news())")
+            if self.log  == 3:
+                print("\nThere were no news in the given hour (message from search_news())")
             return -1
 
         else:
-            if self.log:
+            if self.log == 3:
                 print('\n\nFiltered URLs from the given hour: (from NewsAPI) (message from search_news()) \n')
                 print(self.filtered_article_urls)
                 print('\nFiltered articles: (form NewsAPI)\n')
@@ -92,7 +93,7 @@ class News():
 
 
     def get_full_text(self):
-        if self.log:
+        if self.log == 3:
             print("\n\n\nURLSs, titles and full contents of articles (from news-please) (message from get_full_text()):\n")
 
         urls_without_full_text = []
@@ -101,13 +102,13 @@ class News():
                 article = NewsPlease.from_url(current_article_url)
                 self.filtered_article_titles.append(article.title)
                 self.filtered_article_contents.append(article.maintext)
-                if self.log:
+                if self.log == 3:
                     print("\nCurrent article URL: ", current_article_url)
                     print('\nArticle title: ', article.title)
                     print("\nArticle maintext: ", article.maintext)
 
             except Exception as e:
-                if self.log:
+                if self.log == 3:
                     print(f"\nSkipping invalid or missing 'maintext' attribute for URL: {current_article_url}, (message from get_full_text())")
                     print(f"Error processing URL {current_article_url}: {e}")
                 urls_without_full_text.append(current_article_url)
@@ -118,7 +119,7 @@ class News():
 
 
         if not self.filtered_article_contents:
-            if(self.log):
+            if(self.log == 3):
                 print("\nThere were no full texts (message from get_full_texts()")
             return 0
 
@@ -135,11 +136,11 @@ class News():
             if there_are_full_contents:
                 return 1
             else:
-                if self.log:
+                if self.log == 3:
                     print("\nThere were no full texts (message from search_and_get_full_content())")
                 return -1
         else:
-            if self.log:
+            if self.log == 3:
                 print("\nThere are no articles (message from search_and_get_full_content())")
             return -1
 
