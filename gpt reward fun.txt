@@ -1,0 +1,22 @@
+def get_reward(self, action):
+    # Calculate price difference between current and previous time step
+    price_diff = self.df.iloc[self.current_step]['Close'] - self.df.iloc[self.current_step - 1]['Close']
+    
+    # Calculate the 30-day historical volatility of the stock
+    prices = self.df.iloc[self.current_step - 30:self.current_step]['Close']
+    log_returns = np.log(prices / prices.shift(1))
+    vol = np.sqrt(252 * log_returns.var())
+    
+    # Calculate the momentum of the stock over the past 30 days
+    momentum = (self.df.iloc[self.current_step]['Close'] /
+                self.df.iloc[self.current_step - 30]['Close'] - 1)
+    
+    # Calculate the reward based on the action and the stock metrics
+    if action == 0:  # Sell
+        reward = price_diff - 0.1 * vol - 0.1 * momentum
+    elif action == 1:  # Hold
+        reward = -0.05 * vol
+    elif action == 2:  # Buy
+        reward = -price_diff - 0.1 * vol - 0.1 * momentum
+    
+    return reward

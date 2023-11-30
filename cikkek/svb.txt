@@ -1,0 +1,10 @@
+Beginning of the Collapse
+During the Pandemic, the government increased the interest rates for the purpose of economic easing in the economy. And there is an inverse relationship between bond prices and interest rates that is if the interest rates in the markets increase the value of the bond in your holding will decrease and vice versa. This was the first major difficulty faced by the bank.
+As the interest rates were increased the startups that have raised funding through loans from the market cost of interest were also increasing and they were not getting any additional funding from venture capitalists to run their startups. So, the startups started withdrawing their surplus money from SVB but due to this panic withdrawal from startups and other customer banks was not holding enough liquidity.
+
+The Domino effect
+Seeing the Panic in the market banks started liquidating their bond positions on huge losses. In March 2023, the bank sold around $ 21 billion bonds incurring a loss of $ 1.8 billion on them. When the news was out the bank share almost plunged by 55-60% in the stock markets.
+
+Now the question comes what really happened to the money of the customers when the bank collapsed?
+In the US, whenever any bank collapses the government has set a limit of $ 250k as the amount that the customer will receive from the bank for the deposits that it has made. The FDIC took control of the bank and incorporated a new bank called Deposit Insurance National Bank of Santa Clara.
+When the bank crashed around 89% of its deposits were uninsured. The US government said It will ensure all SVB account holders will be able to retrieve any funds they have when they start day-to-day statements.
