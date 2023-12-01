@@ -77,7 +77,7 @@ class Env_with_news(gym.Env):
             average_score = news_analyzer.analyze()
 
             if self.log <= 3:
-                print(f"f\n\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score}")
+                print(f"\n\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score}")
 
             current_date += delta
 

@@ -28,6 +28,6 @@ print('utolsó ár: ', testdata.iloc[1612,0])
 
 
 
-#test_env = Env_with_news('AAPL', '2023-11-28', '2023-11-29', 100000,1, '1h')
-test_env = Env_with_news('AAPL', '2023-11-26', '2023-11-29', 100000, 2, '1d')
+test_env = Env_with_news('AAPL', '2023-11-28', '2023-11-29', 100000, 2, '1h')
+#test_env = Env_with_news('AAPL', '2023-11-26', '2023-11-29', 100000, 2, '1d')
 test_env.news_analysis_in_given_interval()
