@@ -6,6 +6,7 @@ import datetime
 import os
 import pandas as pd
 from analyze_news import Analyze_news
+import openai
 
 
 
@@ -27,6 +28,8 @@ class Env_with_news(gym.Env):
         self.known_data_number = 60  # amennyi árat ismer maga előtt
         self.current_step = 0
         self.current_info = 0
+        self.news_scores = []
+        self.reducated_news_scores = []
 
         # action space beállításai
         low_a = np.array([0, 0])
@@ -74,12 +77,61 @@ class Env_with_news(gym.Env):
             current_date_string = current_date.strftime("%Y-%m-%d")
 
             news_analyzer = Analyze_news(self.stock_symbol, current_date_string, hour=int(current_hour), log =self.log)
-            average_score = news_analyzer.analyze()
+            try:
+                average_score = news_analyzer.analyze()
+            except openai.error.InvalidRequestError as e:
+                if self.log <= 3:
+                    print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
+                    print("\nSkipping this news and continuing with the next one.")
+                current_date += delta
+                average_score = -1
 
             if self.log <= 3:
-                print(f"\n\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score}")
+                print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from news_analysis_in_given_interval())")
+
+
+            if average_score != -1:
+                self.news_scores.append(average_score)
+            else:
+                self.news_scores.append(5)
 
             current_date += delta
+
+        print(f"\n\n\nNews scores: {self.news_scores} (message from news_analysis_in_given_interval())")
+
+
+
+
+
+    def give_as_many_news_scores_as_dataline(self):
+        data_length = len(self.data)
+        news_scores_length = len(self.news_scores)
+
+
+        #if self.log == 2 or self.log == 3:
+        if self.log == 1:
+            print("\n\n\nAll of the prices from data (message from (give_as_many_news_scores_as_dataline())\n")
+            for i in range(data_length):
+                print(self.data.iloc[i, 0])
+
+            print("\nAll news scores: \n")
+            print(self.news_scores)
+
+
+        if self.log <= 3:
+            print(f"\n\n\n the length of data: {data_length}, the length of news_scores: {news_scores_length}")
+
+        if data_length == news_scores_length:
+            self.reducated_news_scores = self.news_scores
+
+        #elif news_scores_length > data_length:
+
+
+
+
+
+
+
 
 
 
@@ -335,3 +387,9 @@ class Env_with_news(gym.Env):
             for i in self.sales_log:
                 file.write('%s\n' % i)
 
+
+
+
+test_env = Env_with_news('AAPL','2023-11-29', '2023-11-30',100000,1,'1h')
+test_env.news_analysis_in_given_interval()
+test_env.give_as_many_news_scores_as_dataline()

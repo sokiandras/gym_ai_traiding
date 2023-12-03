@@ -22,19 +22,19 @@ class Analyze_news():
                 sentiment_score = ai.analyze_sentiment_chat(article_content)
                 sentiment_score_float = float(sentiment_score)
                 if self.log == 2 or self.log == 3:
-                    print(f"\n\nSentiment score for Article {i+1}: title: {article_title}: {sentiment_score}")
-                    print(f"\nArticle URL: {article_url}")
+                    print(f"\n\n\nSentiment score for Article {i+1}: title: {article_title}: {sentiment_score} (message from analyze())")
+                    print(f"\nArticle URL: {article_url} (message from analyze())")
                 self.scores.append(sentiment_score_float)
 
             if self.log == 2 or self.log == 3:
-                print("\nscore list: ", self.scores)
+                print(f"\nScore list from hour {self.hour}: {self.scores} (message from analyze())")
 
             average_score = statistics.mean(self.scores)
             return average_score
 
         else:
             if self.log == 2 or self.log == 3:
-                print("\nThere were no analyzable news in the given hour (message from analyze())")
+                print(f"\n\n\nThere were no analyzable news in hour {self.hour} (message from analyze())")
             return -1
 
 

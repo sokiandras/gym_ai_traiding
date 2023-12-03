@@ -4,7 +4,7 @@ from stockmarketenv import StockMarketEnv
 
 
 
-env = StockMarketEnv(symbol='AAPL', start_date='2022-01-01', end_date='2022-04-26', balance=100000, log=False)
+env = StockMarketEnv(symbol='AAPL', start_date='2022-01-01', end_date='2022-04-26', balance=100000, log=True)
 model = Learning(env, steps=10000)
 print("\ncomment from main: A tanulási folyamat kész van\n")
 
