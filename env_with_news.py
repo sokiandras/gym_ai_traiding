@@ -28,8 +28,11 @@ class Env_with_news(gym.Env):
         self.known_data_number = 60  # amennyi árat ismer maga előtt
         self.current_step = 0
         self.current_info = 0
+
+
         self.news_scores = []
-        self.reducated_news_scores = []
+        self.news_scores_with_index = pd.DataFrame
+        self.reducated_news_scores = pd.DataFrame
 
         # action space beállításai
         low_a = np.array([0, 0])
@@ -51,6 +54,16 @@ class Env_with_news(gym.Env):
 
 
 
+
+    def data_index_modifier(self):
+        string_index = self.data.index.strftime('%Y-%m-%d %H')
+        self.data.index = string_index
+
+        if self.log <= 3:
+            print("\n\nAll dates with prices from data with date: (message from data_index_modifier())")
+            for i in range(len(self.data)):
+                print("Date: ", self.data.index[i])
+                print("Price: ", self.data.iloc[i, 0])
 
 
 
@@ -102,29 +115,31 @@ class Env_with_news(gym.Env):
 
 
 
+    def index_for_news_scores(self):
+        news_scores_with_index = pd.Series(self.news_scores)
 
-    def give_as_many_news_scores_as_dataline(self):
-        data_length = len(self.data)
-        news_scores_length = len(self.news_scores)
+        datetime_strings = []
+        current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+        interval_in_int = int(self.data_interval[:-1])
 
+        if self.data_interval.endswith('h'):
+            delta = datetime.timedelta(hours=interval_in_int)
+        elif self.data_interval.endswith('d'):
+            delta = datetime.timedelta(days=interval_in_int)
 
-        #if self.log == 2 or self.log == 3:
-        if self.log == 1:
-            print("\n\n\nAll of the prices from data (message from (give_as_many_news_scores_as_dataline())\n")
-            for i in range(data_length):
-                print(self.data.iloc[i, 0])
+        while len(datetime_strings) < len(news_scores_with_index):
+            current_hour = current_date.strftime("%H")
+            current_date_string = current_date.strftime("%Y-%m-%d")
+            datetime_strings.append(f"{current_date_string} {current_hour}")
+            current_date += delta
 
-            print("\nAll news scores: \n")
-            print(self.news_scores)
+        # Set the datetime strings as the index of the pandas Series
+        news_scores_with_index.index = datetime_strings
 
+        self.news_scores_with_index = news_scores_with_index
 
         if self.log <= 3:
-            print(f"\n\n\n the length of data: {data_length}, the length of news_scores: {news_scores_length}")
-
-        if data_length == news_scores_length:
-            self.reducated_news_scores = self.news_scores
-
-        #elif news_scores_length > data_length:
+            print(f"\nNews score in indexed series: (message from index_for_news_scores())\n ", self.news_scores_with_index)
 
 
 
@@ -132,8 +147,33 @@ class Env_with_news(gym.Env):
 
 
 
+    def give_as_many_news_scores_as_dataline(self):
+        self.data_index_modifier()
+        self.index_for_news_scores()
 
+        new_scores = []
 
+        # Calculate the average of news_scores for the time intervals where there is no data at the beginning of the day
+        average_beginning_day = sum(self.news_scores[:10]) / 10 if len(self.news_scores) > 10 else 0
+        new_scores.append(average_beginning_day)
+
+        # Use the corresponding news_scores for the time intervals where there is data
+        new_scores.extend(self.news_scores[10:-10])
+
+        # Calculate the average of news_scores for the time intervals where there is no data at the end of the day
+        average_end_day = sum(self.news_scores[-10:]) / 10 if len(self.news_scores) > 10 else 0
+        new_scores.append(average_end_day)
+
+        # Ensure that the length of new_scores matches the length of self.data.index
+        if len(new_scores) > len(self.data.index):
+            new_scores = new_scores[:len(self.data.index)]
+        elif len(new_scores) < len(self.data.index):
+            new_scores += [np.nan] * (len(self.data.index) - len(new_scores))
+
+        self.reducated_news_scores = pd.Series(new_scores, index=self.data.index)
+
+        if self.log <= 3:
+            print("\nReducated news scores list: ", self.reducated_news_scores)
 
 
 
@@ -390,6 +430,6 @@ class Env_with_news(gym.Env):
 
 
 
-test_env = Env_with_news('AAPL','2023-11-29', '2023-11-30',100000,1,'1h')
+test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,1,'1h')
 test_env.news_analysis_in_given_interval()
 test_env.give_as_many_news_scores_as_dataline()

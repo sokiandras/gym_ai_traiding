@@ -1,5 +1,5 @@
 import yfinance as yf
-from env_with_news import Env_with_news
+#from env_with_news import Env_with_news
 
 input_string = "1h"
 numeric_value = int(input_string[:-1])
@@ -19,12 +19,22 @@ print(testdata.head())
 
 print("All prices from testdata: ")
 for i in range(len(testdata)):
-    print(testdata.iloc[i,0])
+    print("Price: ", testdata.iloc[i,0])
 
 
-print("Stepnumber test: ")
-stepnumber = len(testdata)
-print('stepnumber: ', stepnumber)
+print("\n\nAll dates with prices from testdata with date: ")
+for i in range(len(testdata)):
+    print("Date: ", testdata.index[i])
+    print("Price: ", testdata.iloc[i,0])
+
+
+# Convert the datetime index to string
+str_index = testdata.index.strftime('%Y-%m-%d %H')
+
+# Print the modified index
+print(str_index)
+
+
 
 
 datalen = len(testdata)
