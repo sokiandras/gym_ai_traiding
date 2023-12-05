@@ -55,16 +55,6 @@ class Env_with_news(gym.Env):
 
 
 
-    def data_index_modifier(self):
-        string_index = self.data.index.strftime('%Y-%m-%d %H')
-        self.data.index = string_index
-
-        if self.log <= 3:
-            print("\n\nAll dates with prices from data with date: (message from data_index_modifier())")
-            for i in range(len(self.data)):
-                print("Date: ", self.data.index[i])
-                print("Price: ", self.data.iloc[i, 0])
-
 
 
     def news_analysis_in_given_interval(self):
@@ -115,7 +105,19 @@ class Env_with_news(gym.Env):
 
 
 
-    def index_for_news_scores(self):
+    def set_datetime_index_for_data(self):
+        string_index = self.data.index.strftime('%Y-%m-%d %H')
+        datetime_index = pd.to_datetime(string_index)
+        self.data.index = datetime_index
+
+        if self.log <= 3:
+            print('\ndata:\n')
+            print(self.data)
+
+
+
+
+    def set_datetime_index_for_news_scores(self):
         news_scores_with_index = pd.Series(self.news_scores)
 
         datetime_strings = []
@@ -133,47 +135,47 @@ class Env_with_news(gym.Env):
             datetime_strings.append(f"{current_date_string} {current_hour}")
             current_date += delta
 
-        # Set the datetime strings as the index of the pandas Series
-        news_scores_with_index.index = datetime_strings
+        index_in_datetime = pd.to_datetime(datetime_strings)
+        news_scores_with_index.index = index_in_datetime
 
         self.news_scores_with_index = news_scores_with_index
 
         if self.log <= 3:
-            print(f"\nNews score in indexed series: (message from index_for_news_scores())\n ", self.news_scores_with_index)
-
-
-
+            print(f"\nNews score in indexed series: (message from set_datetime_index_for_news_scores())\n ", self.news_scores_with_index)
 
 
 
 
     def give_as_many_news_scores_as_dataline(self):
-        self.data_index_modifier()
-        self.index_for_news_scores()
+        self.set_datetime_index_for_data()
+        self.set_datetime_index_for_news_scores()
 
         new_scores = []
+        temp_scores = []
 
-        # Calculate the average of news_scores for the time intervals where there is no data at the beginning of the day
-        average_beginning_day = sum(self.news_scores[:10]) / 10 if len(self.news_scores) > 10 else 0
-        new_scores.append(average_beginning_day)
+        self.data.index = self.data.index.strftime('%Y-%m-%d %H')
+        self.news_scores_with_index.index = self.news_scores_with_index.index.strftime('%Y-%m-%d %H')
 
-        # Use the corresponding news_scores for the time intervals where there is data
-        new_scores.extend(self.news_scores[10:-10])
 
-        # Calculate the average of news_scores for the time intervals where there is no data at the end of the day
-        average_end_day = sum(self.news_scores[-10:]) / 10 if len(self.news_scores) > 10 else 0
-        new_scores.append(average_end_day)
+        for index in self.news_scores_with_index.index:
+            if index in self.data.index:
+                if temp_scores:  # if temp_scores is not empty
+                    temp_scores.append(self.news_scores_with_index.loc[index])
+                    average_score = sum(temp_scores) / len(temp_scores)
+                    score = average_score
+                    temp_scores = []  # reset temp_scores
+                else:
+                    score = self.news_scores_with_index.loc[index]
 
-        # Ensure that the length of new_scores matches the length of self.data.index
-        if len(new_scores) > len(self.data.index):
-            new_scores = new_scores[:len(self.data.index)]
-        elif len(new_scores) < len(self.data.index):
-            new_scores += [np.nan] * (len(self.data.index) - len(new_scores))
+                new_scores.append(score)
+            else:
+                temp_scores.append(self.news_scores_with_index.loc[index])
 
-        self.reducated_news_scores = pd.Series(new_scores, index=self.data.index)
+
+        self.reducated_news_scores = pd.Series(new_scores, index = self.data.index)
 
         if self.log <= 3:
-            print("\nReducated news scores list: ", self.reducated_news_scores)
+            print("\n\nReducated news scores list: (message from give_as_many_news_scores_as_dataline())", self.reducated_news_scores)
 
 
 
