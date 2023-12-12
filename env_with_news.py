@@ -19,13 +19,13 @@ class Env_with_news(gym.Env):
         self.log = log
         self.data_interval = data_interval_like_1h  #így kell kinézni "1h" (STRING!!!)
 
-        self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)  # itt tölti le az adatokat
-        self.stepnumber = len(self.data)
+        # self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)  # itt tölti le az adatokat
+        #self.stepnumber = len(self.data)
         self.current_step = None  # amikor először lefut, akkor még nincs step
 
         # kezdő beállítások
         self.start_balance = balance  # kezdő egyenleg
-        self.known_data_number = 60  # amennyi árat ismer maga előtt
+        self.known_data_number = 3  # amennyi árat ismer maga előtt
         self.current_step = 0
         self.current_info = 0
 
@@ -43,7 +43,7 @@ class Env_with_news(gym.Env):
         # observation space beállításai
         low_o = 0
         high_o = 1
-        shape = (6, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
+        shape = (7, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
         self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
         # self.observation_space = gym.spaces.Box(low=0, high=1, shape=(6,))
 
@@ -52,6 +52,8 @@ class Env_with_news(gym.Env):
         #if (current_date - start_date) > 30:
             #raise ValueError("\nStart date is older than one month from the current date, so NewsAPI will not be able to get news")
 
+        self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
+        self.stepnumber = len(self.data)
 
 
 
@@ -181,6 +183,19 @@ class Env_with_news(gym.Env):
 
 
 
+    def data_maker(self):
+        self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)
+        self.news_analysis_in_given_interval()
+        self.give_as_many_news_scores_as_dataline()
+        self.data['News scores'] = self.reducated_news_scores
+
+        print('\n\n data: ')
+        print(self.data.head(10))
+
+
+
+
+
 
 
     def get_observation(self):
@@ -193,8 +208,10 @@ class Env_with_news(gym.Env):
         max_close = self.data['Close'].max()
         max_adjclose = self.data['Adj Close'].max()
         max_volume = self.data['Volume'].max()
+        max_news_score = 10
 
         max_balance = self.start_balance * 100  # ha olyan jó lesz, hogy 1000x-esére növelné a pénzt, akkor ezt át kell írni
+
 
         frame = np.array([
             self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
@@ -205,11 +222,11 @@ class Env_with_news(gym.Env):
             # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
             self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
             # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step][
-                'Adj Close'].values / max_adjclose,
+            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
             # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
             self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
             # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score
         ])  # known_data_number oszlopa és 6 sora lesz: 1. sor: open, 2.: high, 3.: close, .... és az oszlopok a dátumok száma
 
         # myFavouriteVal = [[self.balance / max_balance]]
@@ -246,6 +263,7 @@ class Env_with_news(gym.Env):
         self.share_shorted_open = 0
         self.share_shorted_closed = 0
 
+
         return self.get_observation()
 
 
@@ -263,8 +281,7 @@ class Env_with_news(gym.Env):
         open_price = self.data.iloc[self.current_step]['Open']
         close_price = self.data.iloc[self.current_step]['Close']
 
-        current_price = random.uniform(open_price,
-                                       close_price)  # az adott lépésnél az Open és a Close ár között választ egy véletlen árat
+        current_price = random.uniform(open_price, close_price)  # az adott lépésnél az Open és a Close ár között választ egy véletlen árat
         self.prev_net_worth = self.net_worth
 
         if action_type <= 1:  # vásárlás  (annyi darabot, ahányad részét a balance_usage_ratio enged)
@@ -278,8 +295,7 @@ class Env_with_news(gym.Env):
                     'possibility reason: ': possibility_reason,
                 }
             else:
-                possible_number_of_boughts = (
-                                                         self.balance * balance_usage_ratio / current_price) // 1  # ennyi darabot lehet max venni (a //1 az alsó egészrész
+                possible_number_of_boughts = (self.balance * balance_usage_ratio / current_price) // 1  # ennyi darabot lehet max venni (a //1 az alsó egészrész
                 if (possible_number_of_boughts > 0):
                     possibility = 1
                     self.total_bought_open = self.total_bought_open + possible_number_of_boughts
@@ -432,6 +448,9 @@ class Env_with_news(gym.Env):
 
 
 
-test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,1,'1h')
-test_env.news_analysis_in_given_interval()
-test_env.give_as_many_news_scores_as_dataline()
+# test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,2,'1h')
+# test_env.news_analysis_in_given_interval()
+# test_env.give_as_many_news_scores_as_dataline()
+
+#test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,2,'1h')
+

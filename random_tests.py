@@ -15,7 +15,7 @@ testdata = yf.download(symbol, start=start_date, end=end_date, interval=input_st
 
 
 print("Testdata head: ")
-print(testdata.head())
+print(testdata.head(15))
 
 print("All prices from testdata: ")
 for i in range(len(testdata)):

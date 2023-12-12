@@ -20,7 +20,10 @@ class Analyze_news():
         if there_are_articles_and_full_texts == 1:
             for i, (article_title, article_content, article_url) in enumerate(zip(news.filtered_article_titles, news.filtered_article_contents, news.filtered_article_urls)):
                 sentiment_score = ai.analyze_sentiment_chat(article_content)
-                sentiment_score_float = float(sentiment_score)
+                try:
+                    sentiment_score_float = float(sentiment_score)
+                except ValueError:
+                    sentiment_score_float = 5
                 if self.log == 2 or self.log == 3:
                     print(f"\n\n\nSentiment score for Article {i+1}: title: {article_title}: {sentiment_score} (message from analyze())")
                     print(f"\nArticle URL: {article_url} (message from analyze())")

@@ -1,0 +1,649 @@
+C:\Users\andra\miniconda3\envs\sajat1_py37\python.exe D:\Git\gym_ai_traiding\env_with_news.py 
+C:\Users\andra\miniconda3\envs\sajat1_py37\lib\site-packages\gym\spaces\box.py:74: UserWarning: WARN: Box bound precision lowered by casting to float32
+  "Box bound precision lowered by casting to {}".format(self.dtype)
+[*********************100%***********************]  1 of 1 completed
+
+
+
+Sentiment score for Article 1: title: Anker Japan、4K30Hz/1080p60Hz出力のHDMI/VGAポートやUSB-Aポートなど合計10ポートを搭載した「Anker USB-C ハブ (10-in-1, Dual Display)」を発売。: 6 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231130-anker-japan-usb-c-hub-10-in-1-dual-display.html (message from analyze())
+
+Score list from hour 0: [6.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 00 - result score: 6.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 1 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 01 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 2 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 02 - result score: -1 (message from news_analysis_in_given_interval())
+not a 200 response: 403
+
+
+
+There were no analyzable news in hour 3 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 03 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 4 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 04 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Apple、App Store Awards 2023年のベストアプリとベストゲームを発表。MacアプリではPhotomatorとLies of Pが受賞。: 4 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231130-app-store-award-2023.html (message from analyze())
+
+Score list from hour 5: [4.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 05 - result score: 4.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Немного позитивной макроэкономики и цены на нефть: 6 (message from analyze())
+
+Article URL: https://finance.mail.ru/2023-11-30/nemnogo-pozitivnoy-makroekonomiki-i-ceny-na-neft-58820539/ (message from analyze())
+
+Score list from hour 6: [6.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 06 - result score: 6.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 7 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 07 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Here was Linda Yaccarino’s response after Elon Musk’s obscene suggestion to fleeing advertisers: 0 (message from analyze())
+
+Article URL: https://biztoc.com/x/47de54a10c5d51d8 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: AllTrails, Photomator And Generative AI: Here Are The Winners Of 2023 Apple App Store Awards: 8 (message from analyze())
+
+Article URL: https://biztoc.com/x/354f2d6753639132 (message from analyze())
+
+
+
+Sentiment score for Article 3: title: CEO Linda Yaccarino's response after Elon Musk told fleeing X advertisers to ‘F’ themselves: 5 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/here-was-linda-yaccarinos-response-after-elon-musks-obscene-suggestion-to-fleeing-advertisers-d354fa1a (message from analyze())
+
+Score list from hour 8: [0.0, 8.0, 5.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 08 - result score: 4.333333333333333 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 9 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 09 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Is Apple Eyeing A New Partner For Apple Card Issuance? This Job Listing May Give A Clue: 7 (message from analyze())
+
+Article URL: https://biztoc.com/x/52a8a31155613e3d (message from analyze())
+
+Score list from hour 10: [7.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 10 - result score: 7.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Popular QQQ ETF on track for biggest monthly gain since July 2022 as tech stocks soar: 8 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/popular-qqq-etf-on-track-for-biggest-monthly-gain-since-july-2022-as-tech-stocks-soar-a4bb6b43 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: These advisers say markets are expecting unrealistic outcomes. Here are some alternatives.: 7 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/these-advisors-say-markets-are-expecting-unrealistic-outcomes-here-are-some-alternatives-721b0df1 (message from analyze())
+
+Score list from hour 11: [8.0, 7.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 11 - result score: 7.5 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Opinion: One year after its launch, ChatGPT has succeeded in igniting a new era in tech: 7. (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/one-year-after-its-public-launch-chatgpt-has-succeeded-in-igniting-a-new-era-in-tech-0c907154 (message from analyze())
+
+Score list from hour 12: [7.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 12 - result score: 7.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Does Gap Stock Have More Room To Run After Rising 67% This Year?: 8 (message from analyze())
+
+Article URL: https://www.forbes.com/sites/greatspeculations/2023/11/30/does-gap-stock-have-more-room-to-run-after-rising-67-this-year/ (message from analyze())
+
+
+
+Sentiment score for Article 2: title: US Rep. says Congress should vote to ban congressional trading: 0 (message from analyze())
+
+Article URL: https://finbold.com/us-rep-says-congress-should-vote-to-ban-congressional-trading/ (message from analyze())
+
+Score list from hour 13: [8.0, 0.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 13 - result score: 4.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Thinking about trading options or stock in Eli Lilly And Co, Apple, Uber Technologies, Pure Storage, or Salesforce?: 3 (message from analyze())
+
+Article URL: https://www.marketscreener.com/quote/stock/UBER-TECHNOLOGIES-INC-57860975/news/Thinking-about-trading-options-or-stock-in-Eli-Lilly-And-Co-Apple-Uber-Technologies-Pure-Storage-45474569/ (message from analyze())
+
+Score list from hour 14: [3.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 14 - result score: 3.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Apple Stock Fell Last Week, Analysts Say This Is The Perfect Opportunity To Buy: 2 (message from analyze())
+
+Article URL: https://biztoc.com/x/a8982fa204c772ec (message from analyze())
+
+Score list from hour 15: [2.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 15 - result score: 2.0 (message from news_analysis_in_given_interval())
+not a 200 response: 403
+
+
+
+Sentiment score for Article 1: title: Former Apple worker reveals top 7 iPhone hacks that completely change how you use it: 8 (message from analyze())
+
+Article URL: https://biztoc.com/x/1e27e31b8a58cc84 (message from analyze())
+
+Score list from hour 16: [8.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 16 - result score: 8.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 17 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 17 - result score: -1 (message from news_analysis_in_given_interval())
+Building prefix dict from C:\Users\andra\miniconda3\envs\sajat1_py37\lib\site-packages\jieba\dict.txt ...
+Loading model from cache C:\Users\andra\AppData\Local\Temp\jieba.cache
+Loading model cost 1.022998571395874 seconds.
+Prefix dict has been built succesfully.
+
+
+
+Sentiment score for Article 1: title: Robinhood Launches in the U.K.: 8 (message from analyze())
+
+Article URL: https://finovate.com/robinhood-launches-in-the-u-k/ (message from analyze())
+
+
+
+Sentiment score for Article 2: title: 蘋果信用卡事業跌一跤 恐與高盛拆夥 但Apple Pay業務仍火紅: 6 (message from analyze())
+
+Article URL: https://tw.stock.yahoo.com/news/%E8%98%8B%E6%9E%9C%E4%BF%A1%E7%94%A8%E5%8D%A1%E4%BA%8B%E6%A5%AD%E8%B7%8C-%E8%B7%A4-%E6%81%90%E8%88%87%E9%AB%98%E7%9B%9B%E6%8B%86%E5%A4%A5-%E4%BD%86apple-pay%E6%A5%AD%E5%8B%99%E4%BB%8D%E7%81%AB%E7%B4%85-022023991.html (message from analyze())
+
+
+
+Sentiment score for Article 3: title: Here was Linda Yaccarino’s response after Elon Musk’s obscene suggestion to fleeing advertisers: 2 (message from analyze())
+
+Article URL: https://biztoc.com/x/3bf12e5278cc43e0 (message from analyze())
+
+
+
+Sentiment score for Article 4: title: Apple's bonds have seen equity-like returns in the past month: 7 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/who-says-corporate-bonds-are-dull-apples-bonds-have-seen-equity-like-returns-in-the-past-month-925360c2 (message from analyze())
+
+Score list from hour 18: [8.0, 6.0, 2.0, 7.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 18 - result score: 5.75 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 19 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 19 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Apple、WebKitに関する2件のゼロデイ脆弱性を修正した「iOS: 7 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231201-ios-17-1-2-and-ipados-17-1-2-security-update.html (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Apple、WebKitに関する2件のゼロデイ脆弱性を修正した「macOS 14.1.2 Sonoma」とmacOS 12 MontereyとmacOS 13 Ventura向けに「Safari 17.1.2」をリリース。: 4 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231201-macos-14-1-2-sonoma-and-safari-17-1-2-update.html (message from analyze())
+
+
+
+Sentiment score for Article 3: title: How Apple’s potential split with Goldman Sachs could affect Apple Card users: 6 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/what-apple-card-users-need-to-know-about-apples-potential-breakup-with-goldman-sachs-fa6a4a27 (message from analyze())
+
+Score list from hour 20: [7.0, 4.0, 6.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 20 - result score: 5.666666666666667 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: What Apple Card users need to know about Apple’s potential breakup with Goldman Sachs: 3 (message from analyze())
+
+Article URL: https://biztoc.com/x/9a044e7acf506531 (message from analyze())
+
+Score list from hour 21: [3.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 21 - result score: 3.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: ChatGPTによって作成＆貼付けされた文章を明示してくれる機能を追加したMacやiPhone、iPad対応のMarkdownエディタ「iA Writer v7」がリリース。: 7 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231201-ia-writer-for-mac-and-ios-detects-copied-from-chatgpt.html (message from analyze())
+
+Score list from hour 22: [7.0] (message from analyze())
+
+Analysis for 2023-11-30 - hour: 22 - result score: 7.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 23 (message from analyze())
+
+Analysis for 2023-11-30 - hour: 23 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Valve、macOS 10.13 High SierraとmacOS 10.14 Mojaveでの「Steam Client」のサポートを2024年2月15日で終了。これによりMacでは32-bitゲームアプリが実質プレイできない状態に。: 2 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231201-steam-end-of-support-macos-13-and-14-2024.html (message from analyze())
+
+Score list from hour 0: [2.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 00 - result score: 2.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 1 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 01 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 2 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 02 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 3 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 03 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 4 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 04 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 5 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 05 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Apple To Expand Action Button To Entire iPhone 16 Lineup: Internal Documents Reveal: 8 (message from analyze())
+
+Article URL: https://biztoc.com/x/f1046b1fd7a1e458 (message from analyze())
+
+Score list from hour 6: [8.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 06 - result score: 8.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: 独立系の開発者が開発するiOS/macOSアプリが毎日特別価格で提供される「Indie App Santa」の2023年冬シーズンがスタート。: 7 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231201-indie-app-santa-2023-winter.html (message from analyze())
+
+Score list from hour 7: [7.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 07 - result score: 7.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 8 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 08 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 9 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 09 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 10 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 10 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Amazonブラックフライデーセールで、Kindle書籍が最大70%OFFとなる「Kindle本キャンペーン」が本日12月1日まで開催中。: 5 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231201-kindle-black-friday-sale.html (message from analyze())
+
+
+
+Sentiment score for Article 2: title: U.S. Representative's 2023 investments yield 2.5 times the S&P's returns: 1 (message from analyze())
+
+Article URL: https://finbold.com/u-s-representatives-2023-investments-yield-2-5-times-the-sps-returns/ (message from analyze())
+
+
+
+Sentiment score for Article 3: title: Bill Gross says beaten-down mortgage plays may thrive - and offer huge yields: 7 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/bill-gross-says-beaten-down-mortgage-plays-may-thrive-and-offer-huge-yields-ce80eb7f (message from analyze())
+
+Score list from hour 11: [5.0, 1.0, 7.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 11 - result score: 4.333333333333333 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Up 74% Since The Beginning Of 2023, Will Salesforce Stock Continue Its Strong Rally?: 8 (message from analyze())
+
+Article URL: https://www.forbes.com/sites/greatspeculations/2023/12/01/up-74-since-the-beginning-of-2023-will-salesforce-stock-continue-its-strong-rally/ (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Up 74% Since The Beginning Of 2023, Will Salesforce Stock Continue Its Strong Rally?: 10 (message from analyze())
+
+Article URL: https://biztoc.com/x/7f4afcdee4895684 (message from analyze())
+
+Score list from hour 12: [8.0, 10.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 12 - result score: 9.0 (message from news_analysis_in_given_interval())
+not a 200 response: 403
+
+
+
+Sentiment score for Article 1: title: 〈美股盤後〉儘管鮑爾給降息潑冷水 債市強漲 道瓊續刷今年新高 周線連五紅: 5 (message from analyze())
+
+Article URL: https://tw.stock.yahoo.com/news/%E7%BE%8E%E8%82%A1%E7%9B%A4%E5%BE%8C-%E5%84%98%E7%AE%A1%E9%AE%91%E7%88%BE%E7%B5%A6%E9%99%8D%E6%81%AF%E6%BD%91%E5%86%B7%E6%B0%B4-%E5%82%B5%E5%B8%82%E5%BC%B7%E6%BC%B2-%E9%81%93%E7%93%8A%E7%BA%8C%E5%88%B7%E4%BB%8A%E5%B9%B4%E6%96%B0%E9%AB%98-%E5%91%A8%E7%B7%9A%E9%80%A3%E4%BA%94%E7%B4%85-213207877.html (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Paramount jumps on report it's in talks to bundle streaming service with Apple: 8 (message from analyze())
+
+Article URL: https://biztoc.com/x/cef1d3183ca7c3e0 (message from analyze())
+
+
+
+Sentiment score for Article 3: title: 5 Reasons To Avoid Apple Product Today: 2 (message from analyze())
+
+Article URL: https://biztoc.com/x/fe15c61e6572710a (message from analyze())
+
+
+
+Sentiment score for Article 4: title: What's worth streaming in December 2023: Not much new, yet still a lot to watch: 5 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/heres-whats-worth-streaming-in-december-2023-not-much-new-yet-still-a-lot-to-watch-55181ecc (message from analyze())
+
+Score list from hour 13: [5.0, 8.0, 2.0, 5.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 13 - result score: 5.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Why Paramount Global (PARA) Stock Is Trading Higher Today: 9 (message from analyze())
+
+Article URL: https://biztoc.com/x/c72219b4829fb965 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Paramount’s stock gets a lift amid report of potential Apple streaming bundle: 8 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/paramounts-stock-gets-a-lift-amid-report-of-potential-apple-streaming-bundle-aa2558a6 (message from analyze())
+
+Score list from hour 14: [9.0, 8.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 14 - result score: 8.5 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Apple names top 9 apps of 2023: 8 (message from analyze())
+
+Article URL: https://biztoc.com/x/80acdcccc1c787c2 (message from analyze())
+
+Score list from hour 15: [8.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 15 - result score: 8.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Top 25 Stocks in the S&P 500 By Index Weight for December: 4 (message from analyze())
+
+Article URL: https://www.investopedia.com/top-25-stocks-in-the-s-and-p-500-for-december-8405252 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Analyst Richard Bove thinks the return of 'the Goldman Sachs of old' is the right move: 4 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/heres-why-analyst-richard-bove-thinks-the-return-of-the-goldman-sachs-of-old-is-the-right-move-6b0193e7 (message from analyze())
+
+Score list from hour 16: [4.0, 4.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 16 - result score: 4.0 (message from news_analysis_in_given_interval())
+not a 200 response: 503
+
+
+
+Sentiment score for Article 1: title: The Ratings Game: Here’s why analyst Richard Bove thinks the return of ‘the Goldman Sachs of old’ is the right move: 8 (message from analyze())
+
+Article URL: https://biztoc.com/x/458d33183f72e061 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Midday Movers: Ulta Beauty and Paramount Global Rise, Pfizer and Tesla Fall: 8 (message from analyze())
+
+Article URL: https://www.investopedia.com/midday-movers-ulta-beauty-and-paramount-global-rise-pfizer-and-tesla-fall-8409684 (message from analyze())
+
+
+
+Sentiment score for Article 3: title: The ‘Magnificent Seven’ have dominated the stock market this year. That’s the bad news.: 4 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/the-magnificent-seven-have-dominated-the-stock-market-this-year-thats-the-bad-news-aa22bfe7 (message from analyze())
+
+Score list from hour 17: [8.0, 8.0, 4.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 17 - result score: 6.666666666666667 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: 巴隆：科技股搖搖欲墜 現在進場恐非好時機: 5 (message from analyze())
+
+Article URL: https://tw.stock.yahoo.com/news/%E5%B7%B4%E9%9A%86-%E7%A7%91%E6%8A%80%E8%82%A1%E6%90%96%E6%90%96%E6%AC%B2%E5%A2%9C-%E7%8F%BE%E5%9C%A8%E9%80%B2%E5%A0%B4%E6%81%90%E9%9D%9E%E5%A5%BD%E6%99%82%E6%A9%9F-023004266.html (message from analyze())
+
+Score list from hour 18: [5.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 18 - result score: 5.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Best Growth Stocks for December 2023: 5 (message from analyze())
+
+Article URL: https://www.investopedia.com/best-growth-stocks-8406577 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: 'Wolf of Wall Street’ J. Belfort ditches Disney+ as boycott spreads: 3 (message from analyze())
+
+Article URL: https://finbold.com/wolf-of-wall-street-j-belfort-ditches-disney-as-boycott-spreads/ (message from analyze())
+
+Score list from hour 19: [5.0, 3.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 19 - result score: 4.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: Elon Musk's X is targeting smaller businesses for advertising revenue: 2 (message from analyze())
+
+Article URL: https://www.marketwatch.com/story/x-is-going-small-in-pursuit-of-advertising-amid-boycott-50be5b72 (message from analyze())
+
+Score list from hour 20: [2.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 20 - result score: 2.0 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: S&P 500 Gains and Losses Today: Ulta Has a Beauty of an Earnings Report: 7 (message from analyze())
+
+Article URL: https://www.investopedia.com/s-and-p-500-gains-and-losses-today-ulta-has-a-beauty-of-an-earnings-report-8409935 (message from analyze())
+
+
+
+Sentiment score for Article 2: title: Paramount and Apple Shares Rise After Report of Talks to Bundle Streaming Services: 8 (message from analyze())
+
+Article URL: https://www.investopedia.com/paramount-and-apple-shares-rise-after-report-of-talks-to-bundle-streaming-services-8409815 (message from analyze())
+
+Score list from hour 21: [7.0, 8.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 21 - result score: 7.5 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 22 (message from analyze())
+
+Analysis for 2023-12-01 - hour: 22 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+Sentiment score for Article 1: title: OpenAIのWhisperを利用して音声をテキストへ変換できるMacアプリ「Whisper Transcription」のProライセンスがIndie App Santaキャンペーンで無料に。: 8 (message from analyze())
+
+Article URL: https://applech2.com/archives/20231202-whisper-transcription-for-mac-free.html (message from analyze())
+
+Score list from hour 23: [8.0] (message from analyze())
+
+Analysis for 2023-12-01 - hour: 23 - result score: 8.0 (message from news_analysis_in_given_interval())
+
+
+
+There were no analyzable news in hour 0 (message from analyze())
+
+Analysis for 2023-12-02 - hour: 00 - result score: -1 (message from news_analysis_in_given_interval())
+
+
+
+News scores: [6.0, 5, 5, 5, 5, 4.0, 6.0, 5, 4.333333333333333, 5, 7.0, 7.5, 7.0, 4.0, 3.0, 2.0, 8.0, 5, 5.75, 5, 5.666666666666667, 3.0, 7.0, 5, 2.0, 5, 5, 5, 5, 5, 8.0, 7.0, 5, 5, 5, 4.333333333333333, 9.0, 5.0, 8.5, 8.0, 4.0, 6.666666666666667, 5.0, 4.0, 2.0, 7.5, 5, 8.0, 5] (message from news_analysis_in_given_interval())
+
+data:
+
+                           Open        High  ...   Adj Close   Volume
+Datetime                                     ...                     
+2023-11-30 09:00:00  189.839996  190.320007  ...  188.825897  8749839
+2023-11-30 10:00:00  188.830002  188.990005  ...  188.479996  4576249
+2023-11-30 11:00:00  188.479996  188.610001  ...  188.350006  3433969
+2023-11-30 12:00:00  188.350006  188.759506  ...  188.330002  2774969
+2023-11-30 13:00:00  188.335007  188.830002  ...  188.789993  2750590
+2023-11-30 14:00:00  188.787994  189.210007  ...  188.779999  3353372
+2023-11-30 15:00:00  188.764999  190.199997  ...  189.979996  7329917
+2023-12-01 09:00:00  190.330002  190.500000  ...  190.059998  8588385
+2023-12-01 10:00:00  190.059998  190.990005  ...  190.830093  5955415
+2023-12-01 11:00:00  190.839996  191.450195  ...  191.445007  5188633
+2023-12-01 12:00:00  191.440002  191.559998  ...  191.059998  3380700
+2023-12-01 13:00:00  191.050003  191.289993  ...  191.278702  3259102
+2023-12-01 14:00:00  191.279999  191.339996  ...  191.119995  3998274
+2023-12-01 15:00:00  191.122406  191.380005  ...  191.259995  5182498
+
+[14 rows x 6 columns]
+
+News score in indexed series: (message from set_datetime_index_for_news_scores())
+  2023-11-30 00:00:00    6.000000
+2023-11-30 01:00:00    5.000000
+2023-11-30 02:00:00    5.000000
+2023-11-30 03:00:00    5.000000
+2023-11-30 04:00:00    5.000000
+2023-11-30 05:00:00    4.000000
+2023-11-30 06:00:00    6.000000
+2023-11-30 07:00:00    5.000000
+2023-11-30 08:00:00    4.333333
+2023-11-30 09:00:00    5.000000
+2023-11-30 10:00:00    7.000000
+2023-11-30 11:00:00    7.500000
+2023-11-30 12:00:00    7.000000
+2023-11-30 13:00:00    4.000000
+2023-11-30 14:00:00    3.000000
+2023-11-30 15:00:00    2.000000
+2023-11-30 16:00:00    8.000000
+2023-11-30 17:00:00    5.000000
+2023-11-30 18:00:00    5.750000
+2023-11-30 19:00:00    5.000000
+2023-11-30 20:00:00    5.666667
+2023-11-30 21:00:00    3.000000
+2023-11-30 22:00:00    7.000000
+2023-11-30 23:00:00    5.000000
+2023-12-01 00:00:00    2.000000
+2023-12-01 01:00:00    5.000000
+2023-12-01 02:00:00    5.000000
+2023-12-01 03:00:00    5.000000
+2023-12-01 04:00:00    5.000000
+2023-12-01 05:00:00    5.000000
+2023-12-01 06:00:00    8.000000
+2023-12-01 07:00:00    7.000000
+2023-12-01 08:00:00    5.000000
+2023-12-01 09:00:00    5.000000
+2023-12-01 10:00:00    5.000000
+2023-12-01 11:00:00    4.333333
+2023-12-01 12:00:00    9.000000
+2023-12-01 13:00:00    5.000000
+2023-12-01 14:00:00    8.500000
+2023-12-01 15:00:00    8.000000
+2023-12-01 16:00:00    4.000000
+2023-12-01 17:00:00    6.666667
+2023-12-01 18:00:00    5.000000
+2023-12-01 19:00:00    4.000000
+2023-12-01 20:00:00    2.000000
+2023-12-01 21:00:00    7.500000
+2023-12-01 22:00:00    5.000000
+2023-12-01 23:00:00    8.000000
+2023-12-02 00:00:00    5.000000
+dtype: float64
+
+
+Reducated news scores list: (message from give_as_many_news_scores_as_dataline()) Datetime
+2023-11-30 09    5.033333
+2023-11-30 10    7.000000
+2023-11-30 11    7.500000
+2023-11-30 12    7.000000
+2023-11-30 13    4.000000
+2023-11-30 14    3.000000
+2023-11-30 15    2.000000
+2023-12-01 09    5.356481
+2023-12-01 10    5.000000
+2023-12-01 11    4.333333
+2023-12-01 12    9.000000
+2023-12-01 13    5.000000
+2023-12-01 14    8.500000
+2023-12-01 15    8.000000
+dtype: float64
+
+Process finished with exit code 0
