@@ -57,6 +57,10 @@ class News():
 
 
         response = self.session.get(url)
+        if response.status_code != 200:
+            print(f"\nError with NewsAPI request: {response.json()['message']}")
+            return -1
+
         news = response.json()
         if self.log == 3:
             print("All news from the day: (given by NewsAPI) (message from search_news())\n")
@@ -189,8 +193,8 @@ class News():
 
 
 
-#news = News('NewsAPI', 1)
-#news.search_news('AAPL', '2023-11-14', 13)
+# news = News('NewsAPI', 1)
+# news.search_news('AAPL', '2023-11-14', 13)
 #news.get_full_text()
 #news.save_news()
 
