@@ -1,5 +1,5 @@
 import random
-import gym
+import gymnasium as gym
 import numpy as np
 import yfinance as yf
 import datetime
