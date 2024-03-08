@@ -19,95 +19,125 @@ class Env_with_news(gym.Env):
         self.log = log
         self.data_interval = data_interval_like_1h  #így kell kinézni "1h" (STRING!!!)
 
-        # self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)  # itt tölti le az adatokat
-        #self.stepnumber = len(self.data)
+
         self.current_step = None  # amikor először lefut, akkor még nincs step
 
-        # kezdő beállítások
+        # settings for starting
         self.start_balance = balance  # kezdő egyenleg
         self.known_data_number = 3  # amennyi árat ismer maga előtt
         self.current_step = 0
         self.current_info = 0
 
-
+        # points for news analysis
         self.news_scores = []
         self.news_scores_with_index = pd.DataFrame
         self.reducated_news_scores = pd.DataFrame
 
-        # action space beállításai
+        # action space settings
         low_a = np.array([0, 0])
         high_a = np.array([3, 1])
         self.action_space = gym.spaces.Box(low_a, high_a, dtype=np.float32)  # első dimenzió: 0-3 között bármi = 0-1: elad, 1-2: tart, 2-3: vesz;  második dimenzió: 0-1 között bármi = mekkora hányadát költi a pénzének a műveletre.
-        # self.action_space = gym.spaces.Discrete(3)  # legegyszerűbb módszer, vagy elad, vagy vesz, vagy tart
 
-        # observation space beállításai
+        # observation space settings
         low_o = 0
         high_o = 1
         shape = (7, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
         self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
-        # self.observation_space = gym.spaces.Box(low=0, high=1, shape=(6,))
 
-        # a NewsAPI miatt nem lehet 1 hónapnál régebbre visszamenni
-        current_date = datetime.datetime.now()
-        #if (current_date - start_date) > 30:
-            #raise ValueError("\nStart date is older than one month from the current date, so NewsAPI will not be able to get news")
-
-        self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
-        self.stepnumber = len(self.data)
+        # data in
+        # self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
+        # self.stepnumber = len(self.data)
 
 
 
 
 
-    def news_analysis_in_given_interval(self):
+    # def news_analysis_in_given_interval(self):
+    #
+    #     start_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+    #     end_date = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
+    #     current_date = start_date
+    #
+    #     interval_in_int = int(self.data_interval[:-1])
+    #
+    #     if self.data_interval.endswith('h'):  # ha oraban van megadva az interval
+    #         delta = datetime.timedelta(hours=interval_in_int)
+    #     elif self.data_interval.endswith('d'): # ha napban van megadva az interval
+    #         delta = datetime.timedelta(days=interval_in_int)
+    #     else:
+    #         if self.log <= 3:
+    #             print("\nThe interval is not correctly given (message from news_analysis_in_given_interval()")
+    #         return -1
+    #
+    #
+    #     while current_date <= end_date:
+    #         current_hour = current_date.strftime("%H")
+    #         current_date_string = current_date.strftime("%Y-%m-%d")
+    #
+    #         news_analyzer = Analyze_news(self.stock_symbol, current_date_string, hour=int(current_hour), log =self.log)
+    #         try:
+    #             average_score = news_analyzer.analyze()
+    #         except openai.error.InvalidRequestError as e:
+    #             if self.log <= 3:
+    #                 print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
+    #                 print("\nSkipping this news and continuing with the next one.")
+    #             current_date += delta
+    #             average_score = -1
+    #
+    #         if self.log <= 3:
+    #             print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from news_analysis_in_given_interval())")
+    #
+    #
+    #         if average_score != -1:
+    #             self.news_scores.append(average_score)
+    #         else:
+    #             self.news_scores.append(5)
+    #
+    #         current_date += delta
+    #
+    #
+    #
+    #     print(f"\n\n\nNews scores between {self.start_date} and {self.end_date}: {self.news_scores} (message from news_analysis_in_given_interval())")
+
+    def better_news_analysis_in_given_interval(self):
 
         start_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
         end_date = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
         current_date = start_date
 
-        interval_in_int = int(self.data_interval[:-1])
-
-        if self.data_interval.endswith('h'):
-            delta = datetime.timedelta(hours=interval_in_int)
-        elif self.data_interval.endswith('d'):
-            delta = datetime.timedelta(days=interval_in_int)
-        else:
-            if self.log <= 3:
-                print("\nThe interval is not correctly given (message from news_analysis_in_given_interval()")
-            return -1
-
+        date_delta = datetime.timedelta(days=1)
 
         while current_date <= end_date:
-            current_hour = current_date.strftime("%H")
+            news_analyzer = Analyze_news(self.stock_symbol, current_date, self.log)
+            news_analyzer.get_news_for_a_day()
             current_date_string = current_date.strftime("%Y-%m-%d")
 
-            news_analyzer = Analyze_news(self.stock_symbol, current_date_string, hour=int(current_hour), log =self.log)
-            try:
-                average_score = news_analyzer.analyze()
-            except openai.error.InvalidRequestError as e:
+            for current_hour in range(24):
+                try:
+                    average_score = news_analyzer.analyze_for_an_hour(current_hour)
+                except openai.error.InvalidRequestError as e:
+                    if self.log <= 3:
+                        print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
+                        print("\nSkipping this news and continuing with the next one.")
+                        average_score = -1
+                        current_date += date_delta
+
                 if self.log <= 3:
-                    print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
-                    print("\nSkipping this news and continuing with the next one.")
-                current_date += delta
-                average_score = -1
+                    print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from better_news_analysis_in_given_interval())")
 
-            if self.log <= 3:
-                print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from news_analysis_in_given_interval())")
+                if average_score != -1:
+                    self.news_scores.append(average_score)
+                else:
+                    self.news_scores.append(5)
 
+            current_date += date_delta
 
-            if average_score != -1:
-                self.news_scores.append(average_score)
-            else:
-                self.news_scores.append(5)
-
-            current_date += delta
-
-        print(f"\n\n\nNews scores: {self.news_scores} (message from news_analysis_in_given_interval())")
-
+        print(f"\n\n\nNews scores between {self.start_date} and {self.end_date}: {self.news_scores} (message from news_analysis_in_given_interval())")
 
 
 
     def set_datetime_index_for_data(self):
+        #self.data.index = pd.to_datetime(self.data.index)
         string_index = self.data.index.strftime('%Y-%m-%d %H')
         datetime_index = pd.to_datetime(string_index)
         self.data.index = datetime_index
@@ -185,7 +215,8 @@ class Env_with_news(gym.Env):
 
     def data_maker(self):
         self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)
-        self.news_analysis_in_given_interval()
+        #self.news_analysis_in_given_interval()
+        self.better_news_analysis_in_given_interval()
         self.give_as_many_news_scores_as_dataline()
         self.data['News scores'] = self.reducated_news_scores
 
@@ -448,9 +479,9 @@ class Env_with_news(gym.Env):
 
 
 
-# test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,2,'1h')
-# test_env.news_analysis_in_given_interval()
-# test_env.give_as_many_news_scores_as_dataline()
+test_env = Env_with_news('AAPL','2024-03-04', '2024-03-07',100000,3,'1h')
+test_env.better_news_analysis_in_given_interval()
+test_env.give_as_many_news_scores_as_dataline()
 
 #test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,2,'1h')
 

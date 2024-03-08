@@ -15,7 +15,7 @@ register(
 )
 
 #env = Env_with_news('AAPL','2024-02-10','2024-02-20', 100000, 2, '1h')
-env=gym.make("StockMarketEnv_with_news-v1", apply_api_compatibility=True, symbol="AAPL", start_date="2024-02-17", end_date="2024-02-20", balance=100000, log=2, data_interval_like_1h='1h')
+env=gym.make("StockMarketEnv_with_news-v1", apply_api_compatibility=True, symbol="AAPL", start_date="2024-02-10", end_date="2024-02-15", balance=100000, log=2, data_interval_like_1h='1h')
 model = Learning(env, steps=10000)
 
 saved_model = model.getmodel()
