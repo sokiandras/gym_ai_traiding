@@ -22,8 +22,8 @@ class Backtest():
             obs, rewards, done, info = self.env.step(action)  # env.step([action])
 
             if done:
-                self.env.log_writer()
+                #self.env.log_writer()
                 obs = self.env.reset()
-                print('End testing on dataest')
-                print('log saved succesfully')
+                print('\nEnd testing on dataset (message from Backtest())')
+                print('\nlog saved succesfully (message from Backtest())')
 

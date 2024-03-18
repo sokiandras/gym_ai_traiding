@@ -12,12 +12,13 @@ import openai
 
 class Env_with_news(gym.Env):
 
-    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h):
+    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, usage):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
         self.log = log
         self.data_interval = data_interval_like_1h  #így kell kinézni "1h" (STRING!!!)
+        self.usage = usage
 
 
         self.current_step = None  # amikor először lefut, akkor még nincs step
@@ -45,8 +46,12 @@ class Env_with_news(gym.Env):
         self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
 
         # data in
-        # self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
-        # self.stepnumber = len(self.data)
+        self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
+        self.stepnumber = len(self.data)
+
+
+        #logging
+        self.log_filename_maker()
 
 
 
@@ -426,6 +431,7 @@ class Env_with_news(gym.Env):
         time = self.data.index[self.current_step]
         if (self.log):
             print(time)  # csak azért, hogy külön sorba írja
+            print(time)  # csak azért, hogy külön sorba írja
 
         current_info = self.take_action(action)
         if (self.log):
@@ -450,6 +456,7 @@ class Env_with_news(gym.Env):
             print('comment from env: Total profit: ', total_profit)
             self.sales_log.append(total_profit_to_log)
             print('comment from env: data length: ', len(self.data))
+            self.log_writer()
 
         observations = self.get_observation()
 
@@ -462,26 +469,49 @@ class Env_with_news(gym.Env):
         print('Close')
 
 
+    def log_filename_maker(self):
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+        if self.usage == "learn":
+            self.log_filename = f'learning_log_{timestamp}.txt'
+        elif self.usage == "backtest":
+            self.log_filename = f'backtest_log_{timestamp}.txt'
+
+
 
 
     def log_writer(self):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_filename = f'stock_trading_log_{timestamp}.txt'
-        log_folder_path = "D:\Egyetem\Önlab\sajat1\logs"
-        if not os.path.exists(log_folder_path):
-            os.makedirs(log_folder_path)
 
-        logfile = os.path.join(log_folder_path, log_filename)
-        with open(logfile, "x") as file:
+        if self.usage == "learn":
+            log_folder_path = "D:\Egyetem\Diplomamunka\logs\Learnings"
+            if not os.path.exists(log_folder_path):
+                os.makedirs(log_folder_path)
+            opening_method = "a"
+
+        elif self.usage == "backtest":
+            log_folder_path = "D:\Egyetem\Diplomamunka\logs\Backtests"
+            if not os.path.exists(log_folder_path):
+                os.makedirs(log_folder_path)
+            opening_method = "x"
+        else:
+            print("\nUncorrect usage type for log saving (message from log_writer()")
+            return -1
+
+
+        logfile = os.path.join(log_folder_path, self.log_filename)
+        with open(logfile, opening_method) as file:
             for i in self.sales_log:
                 file.write('%s\n' % i)
 
+        return 0
 
 
 
-test_env = Env_with_news('AAPL','2024-03-04', '2024-03-07',100000,3,'1h')
-test_env.better_news_analysis_in_given_interval()
-test_env.give_as_many_news_scores_as_dataline()
+
+
+
+#test_env = Env_with_news('AAPL','2024-03-04', '2024-03-06',100000,2,'1h')
+#test_env.better_news_analysis_in_given_interval()
+#test_env.give_as_many_news_scores_as_dataline()
 
 #test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,2,'1h')
 

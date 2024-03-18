@@ -10,6 +10,8 @@ from modellstats import ModellStats
 from zipfile import ZipFile
 from backtest import Backtest
 import pandas as pd
+import gymnasium as gym
+from gymnasium.wrappers import StepAPICompatibility
 
 class Learning():
     def __init__(self, env, steps):
@@ -24,7 +26,7 @@ class Learning():
         print('comment from learning: Tanulás kész\n')
 
 
-        modell_folder_path = "D:\Egyetem\Önlab\onlab2\modells"
+        modell_folder_path = "D:\Egyetem\Diplomamunka\modells"
         if not os.path.exists(modell_folder_path):
             os.makedirs(modell_folder_path)
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
