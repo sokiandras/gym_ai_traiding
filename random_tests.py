@@ -1,4 +1,5 @@
 import yfinance as yf
+import pandas as pd
 #from env_with_news import Env_with_news
 
 input_string = "1h"
@@ -15,6 +16,7 @@ testdata = yf.download(symbol, start=start_date, end=end_date, interval=input_st
 
 
 print("Testdata head: ")
+pd.set_option('display.max_columns', None)
 print(testdata.head(15))
 
 print("All prices from testdata: ")
