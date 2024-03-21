@@ -43,11 +43,7 @@ class Learning():
             return saved_model
 
 
-    def learn_existing_model(self, steps):
-        other_env = Env_with_news('AAPL','2024-03-04','2024-03-06', 100000, 2, '1h', "learn")
-        model_handler = ModelHandler(other_env)
-        model_handler.choose_model()
-        model = model_handler.get_model()
+
 
 
 
