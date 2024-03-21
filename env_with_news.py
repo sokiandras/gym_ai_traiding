@@ -268,6 +268,7 @@ class Env_with_news(gym.Env):
         action_type = action[0]
         balance_usage_ratio = action[1]
         sell_ratio = action[1]
+        self.current_price = 0
 
 
         open_price = self.data.iloc[self.current_step]['Open']
@@ -393,7 +394,7 @@ class Env_with_news(gym.Env):
         if self.current_info:
             self.sales_log.append(self.current_info)
 
-        self.current_price = 0
+
 
         return self.current_info
 
@@ -464,8 +465,9 @@ class Env_with_news(gym.Env):
 
     def log_one_step_for_csv(self):
         step_data_index = self.current_step - self.known_data_number - 1
-        print('\nlog_one_step_for_csv()')
-        print(f'\nself.current_step = {self.current_step} step_data_index = {step_data_index} len(self.step_data) = {len(self.step_trade_data)}')
+        if (self.log == 3):
+            print('\nlog_one_step_for_csv()')
+            print(f'\nself.current_step = {self.current_step} step_data_index = {step_data_index} len(self.step_data) = {len(self.step_trade_data)} message from log_one_step_for_csv()')
         self.log_frame = self.log_frame._append({
             'Step': self.current_step,
             'Time': self.data.index[self.current_step],
