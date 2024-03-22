@@ -32,6 +32,7 @@ class Env_with_news(gym.Env):
         self.reward = 0
 
         # points for news analysis
+        self.ai_type = "Gemini"
         self.news_scores = []
         self.news_scores_with_index = pd.DataFrame
         self.reducated_news_scores = pd.DataFrame
@@ -71,7 +72,7 @@ class Env_with_news(gym.Env):
         date_delta = datetime.timedelta(days=1)
 
         while current_date <= end_date:
-            news_analyzer = Analyze_news(self.stock_symbol, current_date, self.log)
+            news_analyzer = Analyze_news(self.stock_symbol, current_date, self.ai_type, self.log)
             news_analyzer.get_news_for_a_day()
             current_date_string = current_date.strftime("%Y-%m-%d")
 
