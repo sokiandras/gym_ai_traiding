@@ -8,8 +8,8 @@ numeric_value = int(input_string[:-1])
 print(numeric_value)
 
 symbol = "aapl"
-start_date = "2023-11-28"
-end_date = "2023-11-29"
+start_date = "2024-03-28"
+end_date = "2024-03-29"
 
 
 testdata = yf.download(symbol, start=start_date, end=end_date, interval=input_string)
