@@ -228,13 +228,18 @@ class Env_with_news(gym.Env):
             #average_url_list = []
             if index in self.data.index:
                 if temp_urls:  # Check if temp_urls has any accumulated URLs
-                    temp_urls.append(self.news_urls_with_index[index])
+                    # temp_urls.append(self.news_urls_with_index[index])
+                    temp_urls.extend(self.news_urls_with_index[index])
                     average_url_list = temp_urls  # Since URLs are not scores, use entire list
                     temp_urls = []  # Reset temp_urls
                 else:
                     average_url_list = self.news_urls_with_index[index]
 
                 new_urls.append(average_url_list)  # Append list of URLs for the data point
+
+            #ez új:
+            else:
+                temp_urls.extend(self.news_urls_with_index[index])
 
 
         self.reducated_news_urls = new_urls  # No need for Series as URLs aren't scores
@@ -625,7 +630,7 @@ class Env_with_news(gym.Env):
         logfile = os.path.join(log_folder_path, self.log_filename)
         with open(logfile, opening_method) as file:
             for i in self.sales_log:
-                file.write('%s\n' % i)
+                file.write('%s\n\n' % i)
 
 
 
