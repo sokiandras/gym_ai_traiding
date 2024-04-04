@@ -8,6 +8,7 @@ import pandas as pd
 from analyze_news import Analyze_news
 import openai
 import statistics
+import graph_maker
 
 
 class Env_with_news(gym.Env):
