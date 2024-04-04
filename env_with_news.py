@@ -34,6 +34,7 @@ class Env_with_news(gym.Env):
         self.analyzing_times = []
         self.counter_for_analyzed_hours = 0
         self.reducated_news_urls = []
+        self.csv_log_file = None
 
         # points for news analysis
         #self.ai_type = "Gemini"
@@ -622,6 +623,8 @@ class Env_with_news(gym.Env):
 
             excel_file = os.path.join(log_folder_path, self.excel_filename)
             self.log_frame.to_excel(excel_file)
+
+            graph_maker.make_graph(csv_file)
 
         else:
             print("\nUncorrect usage type for log saving (message from save_txt_and_csv_logs()")

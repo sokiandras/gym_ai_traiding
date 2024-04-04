@@ -1,6 +1,42 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import os
+import datetime
+import tkinter as tk
+from tkinter import filedialog
+
+
+
+def save_graph(graph, filename):
+    graph_folder = "D:\\Egyetem\\Diplomamunka\\logs\\Backtest_graphs"
+    if not os.path.exists(graph_folder):
+        os.makedirs(graph_folder)
+    graph_file = os.path.join(graph_folder, filename)
+    graph.savefig(graph_file)
+
+
+
+
+def add_arrow(data, ax, date, action, cost_or_income):  # a cost_or_income nincs használatban most (de lehetne igazából)
+    if action == 'Buy':
+        arrow_style = 'arc3'
+        index = data.index[data['Time'] == date][0]
+        cost = int(data.loc[index, 'Cost'])
+        label = f"Buy: {cost}$"
+        y = data.loc[index, 'Cost']
+        y_offset = 1
+        ax.annotate(label, xy=(date, 1), xytext=(date, 0), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
+
+    if action == 'sell':
+        arrow_style = 'arc3'
+        index = data.index[data['Time'] == date][0]
+        income = int(data.loc[index, 'Income'])
+        label = f"Sell: {income}$"
+        y = data.loc[index, 'Income']
+        y_offset = -1
+        ax.annotate(label, xy=(date, 0), xytext=(date, 1), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
+
 
 
 
@@ -25,39 +61,12 @@ def make_graph(csv_file):
     axs[0].grid(True)
 
 
-    #Arrow plot:
-
-    def add_arrow(ax, date, action, cost_or_income):
-        if action == 'Buy':
-            arrow_style = 'arc3'
-            index = data.index[data['Time'] == date][0]
-            cost = int(data.loc[index, 'Cost'])
-            label = f"Buy: {cost}$"
-            y = data.loc[index, 'Cost']
-            y_offset = 1
-            ax.annotate(label, xy=(date, 1), xytext=(date, 0), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
-
-        if action == 'sell':
-            arrow_style = 'arc3'
-            index = data.index[data['Time'] == date][0]
-            income = int(data.loc[index, 'Income'])
-            label = f"Sell: {income}$"
-            y = data.loc[index, 'Income']
-            y_offset = -1
-            ax.annotate(label, xy=(date, 0), xytext=(date, 1), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
-
-
-
-        # Add arrow with annotation
-        #ax.annotate(label, xy=(date, y), xytext=(date, y), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
-
-
     for index, row in data.iterrows():
         action = row['Type']
         if row['Possibility'] == 1:
             if action in ['Buy', 'sell']:
                 cost_or_income = row['Cost'] if action == 'Buy' else row['Income']
-                add_arrow(axs[1], dates.iloc[index], action, cost_or_income)
+                add_arrow(data, axs[1], dates.iloc[index], action, cost_or_income)
 
 
 
@@ -96,7 +105,44 @@ def make_graph(csv_file):
     plt.tight_layout()
     plt.show()
 
+    #Save the plot
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+    graph_filename = f'backtest_graph_{timestamp}.png'
+    save_graph(fig, graph_filename)
 
 
 
-make_graph(r"D:\Egyetem\Diplomamunka\logs\Backtests\backtest_log_2024-04-03_18-14.csv")
+
+
+
+
+
+
+
+
+def load_data_for_recreate_graph():
+    root = tk.Tk()
+    root.wm_withdraw()
+    base_folder = "D:\Egyetem\Diplomamunka\logs\Backtests"
+    data_path = filedialog.askopenfilename(initialdir=base_folder, filetypes = (("CSV Files","*.csv"),))
+
+    if data_path is None:
+        print("\nNo csv file has been chosen")
+        return None
+
+    return data_path
+
+
+
+def recreate_graph():
+    data = load_data_for_recreate_graph()
+    if data is not None:
+        make_graph(data)
+    else:
+        print("Data from csv is empty")
+        return -1
+
+
+
+#make_graph(r"D:\Egyetem\Diplomamunka\logs\Backtests\backtest_log_2024-04-03_18-14.csv")
+#recreate_graph()
