@@ -26,7 +26,7 @@ def add_arrow(data, ax, date, action, cost_or_income):  # a cost_or_income nincs
         label = f"Buy: {cost}$"
         y = data.loc[index, 'Cost']
         y_offset = 1
-        ax.annotate(label, xy=(date, 1), xytext=(date, 0), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
+        ax.annotate(label, xy=(date, 1), xytext=(date, 0), arrowprops=dict(facecolor='green', shrink=0.05, connectionstyle=arrow_style))
 
     if action == 'sell':
         arrow_style = 'arc3'
@@ -35,7 +35,7 @@ def add_arrow(data, ax, date, action, cost_or_income):  # a cost_or_income nincs
         label = f"Sell: {income}$"
         y = data.loc[index, 'Income']
         y_offset = -1
-        ax.annotate(label, xy=(date, 0), xytext=(date, 1), arrowprops=dict(facecolor='black', shrink=0.05, connectionstyle=arrow_style))
+        ax.annotate(label, xy=(date, 0), xytext=(date, 1), arrowprops=dict(facecolor='red', shrink=0.05, connectionstyle=arrow_style))
 
 
 
@@ -117,9 +117,6 @@ def make_graph(csv_file):
 
 
 
-
-
-
 def load_data_for_recreate_graph():
     root = tk.Tk()
     root.wm_withdraw()
@@ -144,5 +141,5 @@ def recreate_graph():
 
 
 
-#make_graph(r"D:\Egyetem\Diplomamunka\logs\Backtests\backtest_log_2024-04-03_18-14.csv")
+#make_graph()
 #recreate_graph()

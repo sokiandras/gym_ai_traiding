@@ -4,6 +4,7 @@ import os
 import requests
 from newsplease import NewsPlease
 from analyzed_news_class import One_News
+import sys
 
 
 
@@ -61,6 +62,7 @@ class News():
         response = self.session.get(url)
         if response.status_code != 200:
             print(f"\nError with NewsAPI request: {response.json()['message']}")
+            sys.exit(1)
             return -1
 
         self.all_news_in_a_day = response.json()

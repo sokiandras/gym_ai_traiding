@@ -9,6 +9,8 @@ from analyze_news import Analyze_news
 import openai
 import statistics
 import graph_maker
+from datamaker import DataMaker
+from threading import Lock
 
 
 class Env_with_news(gym.Env):
@@ -22,7 +24,7 @@ class Env_with_news(gym.Env):
         self.usage = usage
 
 
-        self.current_step = None  # amikor először lefut, akkor még nincs step
+        #self.current_step = None  # amikor először lefut, akkor még nincs step
 
         # settings for starting
         self.start_balance = balance  # kezdő egyenleg
@@ -31,17 +33,17 @@ class Env_with_news(gym.Env):
         self.current_info = 0
         self.current_price = 0
         self.reward = 0
-        self.analyzing_times = []
-        self.counter_for_analyzed_hours = 0
-        self.reducated_news_urls = []
+        #self.analyzing_times = []
+        #self.counter_for_analyzed_hours = 0
+        #self.reducated_news_urls = []
         self.csv_log_file = None
 
         # points for news analysis
         #self.ai_type = "Gemini"
         self.ai_type = "OpenAI"
-        self.news_scores = []
-        self.news_scores_with_index = pd.DataFrame
-        self.reducated_news_scores = pd.DataFrame
+        # self.news_scores = []
+        # self.news_scores_with_index = pd.DataFrame
+        # self.reducated_news_scores = pd.DataFrame
 
         # action space settings
         low_a = np.array([0, 0])
@@ -64,215 +66,222 @@ class Env_with_news(gym.Env):
         self.step_trade_data = pd.DataFrame(columns=['Step', 'Type', 'Action', 'Possibility', 'Possibility reason', 'Bought pieces', 'Cost', 'Sold pieces', 'Income', 'Total open', 'Total sold', 'Balance', 'Net worth'])
         self.log_frame = pd.DataFrame(columns=['Step', 'Time', 'Current price', 'News', 'Type', 'Action', 'Possibility', 'Possibility reason', 'Bought pieces', 'Cost', 'Sold pieces', 'Income', 'Total open', 'Total sold', 'Balance', 'Net worth', 'Reward'])
 
-
-
-
-
-
-    def better_news_analysis_in_given_interval(self):
-
-        start_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        end_date = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
-        current_date = start_date
-
-        date_delta = datetime.timedelta(days=1)
-        self.news_urls = [[]]
-
-        while current_date <= end_date:
-            news_analyzer = Analyze_news(self.stock_symbol, current_date, self.ai_type, self.analyzing_times, self.log)
-            news_analyzer.get_news_for_a_day()
-            current_date_string = current_date.strftime("%Y-%m-%d")
-
-            for current_hour in range(24):
-                hourly_urls = []
-                try:
-                    average_score, hourly_urls = news_analyzer.analyze_for_an_hour(current_hour)
-                except openai.error.InvalidRequestError as e:
-                    if self.log <= 3:
-                        print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
-                        print("\nSkipping this news and continuing with the next one.")
-                        average_score = -1
-                        current_date += date_delta
-
-                if self.log <= 3:
-                    print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from better_news_analysis_in_given_interval())")
-
-                if average_score != -1:
-                    self.news_scores.append(average_score)
-
-
-                else:
-                    self.news_scores.append(5)
-
-                self.news_urls[self.counter_for_analyzed_hours].extend(hourly_urls)
-                #self.news_urls.append(hourly_hours)
-                self.news_urls.append([])
-                self.counter_for_analyzed_hours = self.counter_for_analyzed_hours + 1
-
-
-
-            current_date += date_delta
-
-            #self.news_urls.append([])
-
-        print(f"\n\n\nNews scores between {self.start_date} and {self.end_date}: {self.news_scores} (better_news_analysis_in_given_interval())")
-
-
-
-    def set_datetime_index_for_data(self):
-        string_index = self.data.index.strftime('%Y-%m-%d %H')
-        datetime_index = pd.to_datetime(string_index)
-        self.data.index = datetime_index
-
-        if self.log <= 3:
-            print('\ndata:\n')
-            print(self.data)
-
-
-
-
-    def set_datetime_index_for_news_scores(self):
-        news_scores_with_index = pd.Series(self.news_scores)
-
-        datetime_strings = []
-        current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        interval_in_int = int(self.data_interval[:-1])
-
-        if self.data_interval.endswith('h'):
-            delta = datetime.timedelta(hours=interval_in_int)
-        elif self.data_interval.endswith('d'):
-            delta = datetime.timedelta(days=interval_in_int)
-
-        while len(datetime_strings) < len(news_scores_with_index):
-            current_hour = current_date.strftime("%H")
-            current_date_string = current_date.strftime("%Y-%m-%d")
-            datetime_strings.append(f"{current_date_string} {current_hour}")
-            current_date += delta
-
-        index_in_datetime = pd.to_datetime(datetime_strings)
-        news_scores_with_index.index = index_in_datetime
-
-        self.news_scores_with_index = news_scores_with_index
-
-        if self.log <= 3:
-            print(f"\nNews score in indexed series: (message from set_datetime_index_for_news_scores())\n ", self.news_scores_with_index)
-
-
-
-
-    def set_datetime_index_for_news_urls(self):
-        news_urls_with_index = {}
-
-        datetime_strings = []
-        current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        interval_in_int = int(self.data_interval[:-1])
-
-        if self.data_interval.endswith('h'):
-            delta = datetime.timedelta(hours=interval_in_int)
-        elif self.data_interval.endswith('d'):
-            delta = datetime.timedelta(days=interval_in_int)
-
-        for urls in self.news_urls:
-            current_hour = current_date.strftime("%H")
-            current_date_string = current_date.strftime("%Y-%m-%d")
-            datetime_strings.append(f"{current_date_string} {current_hour}")
-            current_date += delta
-
-        for i, datetime_string in enumerate(datetime_strings):
-            news_urls_with_index[datetime_string] = self.news_urls[i]
-
-        self.news_urls_with_index = news_urls_with_index
-
-        if self.log <= 3:
-            print(f"\nNews URLs in indexed dictionary: (message from set_datetime_index_for_news_urls())\n ",
-                  self.news_urls_with_index)
-
-
-
-    def give_as_many_news_scores_and_urls_as_dataline(self):
-        self.set_datetime_index_for_data()
-        self.set_datetime_index_for_news_scores()
-        self.set_datetime_index_for_news_urls()
-
-        new_scores = []
-        temp_scores = []
-
-        new_urls = []
-        temp_urls = []
-
-        self.data.index = self.data.index.strftime('%Y-%m-%d %H')
-        self.news_scores_with_index.index = self.news_scores_with_index.index.strftime('%Y-%m-%d %H')
-
-        for index in self.news_scores_with_index.index:
-
-            if index in self.data.index:
-                if temp_scores:  # if temp_scores is not empty
-                    temp_scores.append(self.news_scores_with_index.loc[index])
-                    average_score = sum(temp_scores) / len(temp_scores)
-                    score = average_score
-                    temp_scores = []  # reset temp_scores
-                else:
-                    score = self.news_scores_with_index.loc[index]
-
-                new_scores.append(score)
-            else:
-                temp_scores.append(self.news_scores_with_index.loc[index])
-
-        self.reducated_news_scores = pd.Series(new_scores, index=self.data.index)
-
-        if self.log <= 3:
-            print("\n\nReducated news scores list: (message from give_as_many_news_scores_as_dataline())",
-                  self.reducated_news_scores)
-
-
-
-        for index in self.news_urls_with_index:
-            #average_url_list = []
-            if index in self.data.index:
-                if temp_urls:  # Check if temp_urls has any accumulated URLs
-                    # temp_urls.append(self.news_urls_with_index[index])
-                    temp_urls.extend(self.news_urls_with_index[index])
-                    average_url_list = temp_urls  # Since URLs are not scores, use entire list
-                    temp_urls = []  # Reset temp_urls
-                else:
-                    average_url_list = self.news_urls_with_index[index]
-
-                new_urls.append(average_url_list)  # Append list of URLs for the data point
-
-            #ez új:
-            else:
-                temp_urls.extend(self.news_urls_with_index[index])
-
-
-        self.reducated_news_urls = new_urls  # No need for Series as URLs aren't scores
-        if self.log <= 3:
-            print("\n\nReducated news URLs list: (message from give_as_many_news_urls_as_dataline())",
-                  self.reducated_news_urls)
-
-
-
+        #multithreading
+        self.lock = Lock()
+
+
+
+
+    # def better_news_analysis_in_given_interval(self):
+    #
+    #     start_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+    #     end_date = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
+    #     current_date = start_date
+    #
+    #     date_delta = datetime.timedelta(days=1)
+    #     self.news_urls = [[]]
+    #
+    #     while current_date <= end_date:
+    #         news_analyzer = Analyze_news(self.stock_symbol, current_date, self.ai_type, self.analyzing_times, self.log)
+    #         news_analyzer.get_news_for_a_day()
+    #         current_date_string = current_date.strftime("%Y-%m-%d")
+    #
+    #         for current_hour in range(24):
+    #             hourly_urls = []
+    #             try:
+    #                 average_score, hourly_urls = news_analyzer.analyze_for_an_hour(current_hour)
+    #             except openai.error.InvalidRequestError as e:
+    #                 if self.log <= 3:
+    #                     print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
+    #                     print("\nSkipping this news and continuing with the next one.")
+    #                     average_score = -1
+    #                     current_date += date_delta
+    #
+    #             if self.log <= 3:
+    #                 print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from better_news_analysis_in_given_interval())")
+    #
+    #             if average_score != -1:
+    #                 self.news_scores.append(average_score)
+    #
+    #
+    #             else:
+    #                 self.news_scores.append(5)
+    #
+    #             self.news_urls[self.counter_for_analyzed_hours].extend(hourly_urls)
+    #             #self.news_urls.append(hourly_hours)
+    #             self.news_urls.append([])
+    #             self.counter_for_analyzed_hours = self.counter_for_analyzed_hours + 1
+    #
+    #
+    #
+    #         current_date += date_delta
+    #
+    #         #self.news_urls.append([])
+    #
+    #     print(f"\n\n\nNews scores between {self.start_date} and {self.end_date}: {self.news_scores} (better_news_analysis_in_given_interval())")
+    #
+    #
+    #
+    # def set_datetime_index_for_data(self):
+    #     string_index = self.data.index.strftime('%Y-%m-%d %H')
+    #     datetime_index = pd.to_datetime(string_index)
+    #     self.data.index = datetime_index
+    #
+    #     if self.log <= 3:
+    #         print('\ndata:\n')
+    #         print(self.data)
+    #
+    #
+    #
+    #
+    # def set_datetime_index_for_news_scores(self):
+    #     news_scores_with_index = pd.Series(self.news_scores)
+    #
+    #     datetime_strings = []
+    #     current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+    #     interval_in_int = int(self.data_interval[:-1])
+    #
+    #     if self.data_interval.endswith('h'):
+    #         delta = datetime.timedelta(hours=interval_in_int)
+    #     elif self.data_interval.endswith('d'):
+    #         delta = datetime.timedelta(days=interval_in_int)
+    #
+    #     while len(datetime_strings) < len(news_scores_with_index):
+    #         current_hour = current_date.strftime("%H")
+    #         current_date_string = current_date.strftime("%Y-%m-%d")
+    #         datetime_strings.append(f"{current_date_string} {current_hour}")
+    #         current_date += delta
+    #
+    #     index_in_datetime = pd.to_datetime(datetime_strings)
+    #     news_scores_with_index.index = index_in_datetime
+    #
+    #     self.news_scores_with_index = news_scores_with_index
+    #
+    #     if self.log <= 3:
+    #         print(f"\nNews score in indexed series: (message from set_datetime_index_for_news_scores())\n ", self.news_scores_with_index)
+    #
+    #
+    #
+    #
+    # def set_datetime_index_for_news_urls(self):
+    #     news_urls_with_index = {}
+    #
+    #     datetime_strings = []
+    #     current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+    #     interval_in_int = int(self.data_interval[:-1])
+    #
+    #     if self.data_interval.endswith('h'):
+    #         delta = datetime.timedelta(hours=interval_in_int)
+    #     elif self.data_interval.endswith('d'):
+    #         delta = datetime.timedelta(days=interval_in_int)
+    #
+    #     for urls in self.news_urls:
+    #         current_hour = current_date.strftime("%H")
+    #         current_date_string = current_date.strftime("%Y-%m-%d")
+    #         datetime_strings.append(f"{current_date_string} {current_hour}")
+    #         current_date += delta
+    #
+    #     for i, datetime_string in enumerate(datetime_strings):
+    #         news_urls_with_index[datetime_string] = self.news_urls[i]
+    #
+    #     self.news_urls_with_index = news_urls_with_index
+    #
+    #     if self.log <= 3:
+    #         print(f"\nNews URLs in indexed dictionary: (message from set_datetime_index_for_news_urls())\n ",
+    #               self.news_urls_with_index)
+    #
+    #
+    #
+    # def give_as_many_news_scores_and_urls_as_dataline(self):
+    #     self.set_datetime_index_for_data()
+    #     self.set_datetime_index_for_news_scores()
+    #     self.set_datetime_index_for_news_urls()
+    #
+    #     new_scores = []
+    #     temp_scores = []
+    #
+    #     new_urls = []
+    #     temp_urls = []
+    #
+    #     self.data.index = self.data.index.strftime('%Y-%m-%d %H')
+    #     self.news_scores_with_index.index = self.news_scores_with_index.index.strftime('%Y-%m-%d %H')
+    #
+    #     for index in self.news_scores_with_index.index:
+    #
+    #         if index in self.data.index:
+    #             if temp_scores:  # if temp_scores is not empty
+    #                 temp_scores.append(self.news_scores_with_index.loc[index])
+    #                 average_score = sum(temp_scores) / len(temp_scores)
+    #                 score = average_score
+    #                 temp_scores = []  # reset temp_scores
+    #             else:
+    #                 score = self.news_scores_with_index.loc[index]
+    #
+    #             new_scores.append(score)
+    #         else:
+    #             temp_scores.append(self.news_scores_with_index.loc[index])
+    #
+    #     self.reducated_news_scores = pd.Series(new_scores, index=self.data.index)
+    #
+    #     if self.log <= 3:
+    #         print("\n\nReducated news scores list: (message from give_as_many_news_scores_as_dataline())",
+    #               self.reducated_news_scores)
+    #
+    #
+    #
+    #     for index in self.news_urls_with_index:
+    #         #average_url_list = []
+    #         if index in self.data.index:
+    #             if temp_urls:  # Check if temp_urls has any accumulated URLs
+    #                 # temp_urls.append(self.news_urls_with_index[index])
+    #                 temp_urls.extend(self.news_urls_with_index[index])
+    #                 average_url_list = temp_urls  # Since URLs are not scores, use entire list
+    #                 temp_urls = []  # Reset temp_urls
+    #             else:
+    #                 average_url_list = self.news_urls_with_index[index]
+    #
+    #             new_urls.append(average_url_list)  # Append list of URLs for the data point
+    #
+    #         #ez új:
+    #         else:
+    #             temp_urls.extend(self.news_urls_with_index[index])
+    #
+    #
+    #     self.reducated_news_urls = new_urls  # No need for Series as URLs aren't scores
+    #     if self.log <= 3:
+    #         print("\n\nReducated news URLs list: (message from give_as_many_news_urls_as_dataline())",
+    #               self.reducated_news_urls)
+    #
+    #
+    #
+    #
+    #
+    # def data_maker(self):
+    #     try:
+    #         self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)
+    #     except Exception as e:
+    #         print(f'Error with downloading data from Yahoo Finance: {e}')
+    #         return -1
+    #     if self.data is None or self.data.empty:
+    #         print("No data was downloaded from yahoo finance. Exiting the program.")
+    #         raise SystemExit("No data was downloaded from yahoo finance. Exiting the program.")
+    #
+    #
+    #     self.better_news_analysis_in_given_interval()
+    #     self.give_as_many_news_scores_and_urls_as_dataline()
+    #     self.data['News scores'] = self.reducated_news_scores
+    #     self.data['News URLs'] = self.reducated_news_urls
+    #     median_analyzing_time = statistics.median(self.analyzing_times)
+    #     if self.log <= 3:
+    #         print('\n\n data: ')
+    #         print(self.data.head(10))
+    #         print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
 
 
     def data_maker(self):
-        try:
-            self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)
-        except Exception as e:
-            print(f'Error with downloading data from Yahoo Finance: {e}')
-            return -1
-        if self.data is None or self.data.empty:
-            print("No data was downloaded from yahoo finance. Exiting the program.")
-            raise SystemExit("No data was downloaded from yahoo finance. Exiting the program.")
-
-
-        self.better_news_analysis_in_given_interval()
-        self.give_as_many_news_scores_and_urls_as_dataline()
-        self.data['News scores'] = self.reducated_news_scores
-        self.data['News URLs'] = self.reducated_news_urls
-        median_analyzing_time = statistics.median(self.analyzing_times)
-        if self.log <= 3:
-            print('\n\n data: ')
-            print(self.data.head(10))
-            print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
+        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.log)
+        self.data_class.data_maker()
+        self.data = self.data_class.data
 
 
 
@@ -325,7 +334,8 @@ class Env_with_news(gym.Env):
 
 
     def reset(self):
-        self.current_step = self.known_data_number + 1
+        #self.current_step = self.known_data_number + 1
+        self.current_step = self.known_data_number
         self.balance = self.start_balance
         self.net_worth = self.start_balance
         # self.prev_balance = self.start_balance
@@ -371,12 +381,14 @@ class Env_with_news(gym.Env):
             if (balance_usage_ratio == 0):
                 possibility = 0
                 possibility_reason = 'Buy, but balance_usage_ration = 0'
+                self.net_worth = self.balance + self.total_bought_open * self.current_price
                 self.current_info = {
                     'step: ': self.current_step,
                     'possibility: ': possibility,
                     'possibility reason: ': possibility_reason,
                 }
                 self.step_trade_data_appender(type, action, possibility, possibility_reason, 0, 0, 0, 0)
+                pass
             else:
                 possible_number_of_boughts = (self.balance * balance_usage_ratio / self.current_price) // 1  # ennyi darabot lehet max venni (a //1 az alsó egészrész
                 if (possible_number_of_boughts > 0):
@@ -384,6 +396,7 @@ class Env_with_news(gym.Env):
                     self.total_bought_open = self.total_bought_open + possible_number_of_boughts
                     additional_cost = possible_number_of_boughts * self.current_price
                     self.balance = self.balance - additional_cost
+                    self.net_worth = self.balance + self.total_bought_open * self.current_price
                     self.current_info = {
                         'step: ': self.current_step,
                         'type: ': type,
@@ -393,9 +406,11 @@ class Env_with_news(gym.Env):
                         'cost: ': additional_cost,
                     }
                     self.step_trade_data_appender(type, action, possibility, 0, possible_number_of_boughts, additional_cost, 0, 0)
+                    pass
                 else:
                     possibility = 0
                     possibility_reason = 'Buy, but possible number of boughts = 0'
+                    self.net_worth = self.balance + self.total_bought_open * self.current_price
                     self.current_info = {
                         'step: ': self.current_step,
                         'type: ': type,
@@ -403,31 +418,34 @@ class Env_with_news(gym.Env):
                         'possibility reason: ': possibility_reason,
                     }
                     self.step_trade_data_appender(type, action, possibility, possibility_reason, 0, 0, 0, 0)
+            pass
 
 
-
-        if action_type > 1 and action_type <= 2:  # hold
+        elif action_type > 1 and action_type <= 2:  # hold
             type = 'hold'
             possibility = 1
+            self.net_worth = self.balance + self.total_bought_open * self.current_price
             self.current_info = {
                 'step: ': self.current_step,
                 'type: ': type,
             }
             self.step_trade_data_appender(type, action, possibility, 0, 0, 0, 0, 0, )
+            pass
 
 
-
-        if action_type > 2 and action_type <= 3:  # elad (annyi darabot, ahányad részt megad a sell_ratio)
+        elif action_type > 2 and action_type <= 3:  # elad (annyi darabot, ahányad részt megad a sell_ratio)
             type = 'sell'
             if (sell_ratio == 0):
                 possibility = 0
                 possibility_reason = 'Sell, but sell_ration = 0'
+                self.net_worth = self.balance + self.total_bought_open * self.current_price
                 self.current_info = {
                     'step: ': self.current_step,
                     'possibility: ': possibility,
                     'possibility reason: ': possibility_reason,
                 }
                 self.step_trade_data_appender(type, action, possibility, possibility_reason, 0, 0, 0, 0)
+                pass
             else:
                 possible_number_of_sells = (self.total_bought_open * sell_ratio) // 1  # ennyi darabot ad el
                 type = 'sell'
@@ -437,6 +455,7 @@ class Env_with_news(gym.Env):
                     self.total_bought_open = self.total_bought_open - possible_number_of_sells
                     additional_income = self.current_price * possible_number_of_sells
                     self.balance = self.balance + additional_income
+                    self.net_worth = self.balance + self.total_bought_open * self.current_price
                     self.current_info = {
                         'step: ': self.current_step,
                         'type: ': type,
@@ -446,9 +465,11 @@ class Env_with_news(gym.Env):
                         'income: ': additional_income,
                     }
                     self.step_trade_data_appender(type, action, possibility, 0, 0, 0, possible_number_of_sells, additional_income)
+                    pass
                 else:
                     possibility = 0
                     possibility_reason = 'Sell, but possible number of sells = 0'
+                    self.net_worth = self.balance + self.total_bought_open * self.current_price
                     self.current_info = {
                         'step: ': self.current_step,
                         'type: ': type,
@@ -456,13 +477,14 @@ class Env_with_news(gym.Env):
                         'possibility reason: ': possibility_reason,
                     }
                     self.step_trade_data_appender(type, action, possibility, possibility_reason, 0, 0, 0, 0)
+            pass
 
 
-
-        if (action[0] == 0 and action[1] == 0):
+        elif (action[0] == 0 and action[1] == 0):
             type = 'action[0 0]'
             possibility = 0
             possibility_reason = 'action = [0 0]'
+            self.net_worth = self.balance + self.total_bought_open * self.current_price
             self.current_info = {
                 'step: ': self.current_step,
                 'possibility: ': possibility,
@@ -476,7 +498,7 @@ class Env_with_news(gym.Env):
         self.current_info['total open shares: '] = self.total_bought_open
         self.current_info['total sold shares so far: '] = self.total_bought_closed
         self.current_info['current balance: '] = self.balance
-        self.net_worth = self.balance + self.total_bought_open * self.current_price
+        # self.net_worth = self.balance + self.total_bought_open * self.current_price
         self.current_info['current net worth: '] = self.net_worth
         self.current_info['action: '] = action
 
@@ -523,7 +545,7 @@ class Env_with_news(gym.Env):
 
         self.reward = self.net_worth - self.prev_net_worth
         if (self.log):
-            print('Reward (profit of the step): ', self.reward)  # csak azért van így, hogy külön sorba írja ki, így látványosabb legyen a profit
+            print(f'Reward (profit of the step): {self.reward} \n')  # csak azért van így, hogy külön sorba írja ki, így látványosabb legyen a profit
 
         self.current_info['Reward = Profit: '] = self.reward
         self.current_info['Time: '] = time
@@ -531,9 +553,12 @@ class Env_with_news(gym.Env):
         if self.usage == "backtest":
             self.log_one_step_for_csv()
 
-        self.current_step = self.current_step + 1
+        with self.lock:
+            self.current_step = self.current_step + 1
+
 
         done = False
+        #if (self.current_step + 1 == len(self.data)):
         if (self.current_step == len(self.data)):
             done = True
             total_profit = self.net_worth - self.start_balance
@@ -553,7 +578,8 @@ class Env_with_news(gym.Env):
 
 
     def log_one_step_for_csv(self):
-        step_data_index = self.current_step - self.known_data_number - 1
+        step_data_index = self.current_step - self.known_data_number
+        #step_data_index = self.current_step - self.known_data_number -1
         if (self.log == 3):
             print('\nlog_one_step_for_csv()')
             print(f'\nself.current_step = {self.current_step} step_data_index = {step_data_index} len(self.step_data) = {len(self.step_trade_data)} message from log_one_step_for_csv()')
