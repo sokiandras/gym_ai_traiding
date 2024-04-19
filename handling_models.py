@@ -6,14 +6,18 @@ from env_with_news import Env_with_news
 
 
 class ModelHandler:
-    def __init__(self, env):
+    def __init__(self, env, getnews):
         self.model_path = None
         self.env = env
+        self.getnews = getnews
 
     def choose_model(self):
         root = tk.Tk()
         root.wm_withdraw()
-        base_folder = "D:\Egyetem\Diplomamunka\modells"
+        if self.getnews == 1:
+            base_folder = "D:\Egyetem\Diplomamunka\modells_with_news"
+        if self.getnews == 0:
+            base_folder = "D:\Egyetem\Diplomamunka\modells_without_news"
         self.model_path = filedialog.askopenfilename(initialdir=base_folder)
         return self.get_model()
 
@@ -25,6 +29,7 @@ class ModelHandler:
 
         model = PPO.load(self.model_path, env = self.env)
         return model
+
 
     def train(self, steps):
         other_env = Env_with_news('AAPL','2024-03-04','2024-03-06', 100000, 2, '1h', "learn")

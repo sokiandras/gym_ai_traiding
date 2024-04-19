@@ -15,7 +15,7 @@ from threading import Lock
 
 class Env_with_news(gym.Env):
 
-    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, usage):
+    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, getnews, usage):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
@@ -33,17 +33,12 @@ class Env_with_news(gym.Env):
         self.current_info = 0
         self.current_price = 0
         self.reward = 0
-        #self.analyzing_times = []
-        #self.counter_for_analyzed_hours = 0
-        #self.reducated_news_urls = []
         self.csv_log_file = None
 
         # points for news analysis
         #self.ai_type = "Gemini"
         self.ai_type = "OpenAI"
-        # self.news_scores = []
-        # self.news_scores_with_index = pd.DataFrame
-        # self.reducated_news_scores = pd.DataFrame
+        self.getnews = getnews
 
         # action space settings
         low_a = np.array([0, 0])
@@ -51,10 +46,16 @@ class Env_with_news(gym.Env):
         self.action_space = gym.spaces.Box(low_a, high_a, dtype=np.float32)  # első dimenzió: 0-3 között bármi = 0-1: elad, 1-2: tart, 2-3: vesz;  második dimenzió: 0-1 között bármi = mekkora hányadát költi a pénzének a műveletre.
 
         # observation space settings
-        low_o = 0
-        high_o = 1
-        shape = (7, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
-        self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+        if self.getnews == 1:
+            low_o = 0
+            high_o = 1
+            shape = (7, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+        if self.getnews == 0:
+            low_o = 0
+            high_o = 1
+            shape = (6,self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
 
         # data in
         self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
@@ -72,214 +73,11 @@ class Env_with_news(gym.Env):
 
 
 
-    # def better_news_analysis_in_given_interval(self):
-    #
-    #     start_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-    #     end_date = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
-    #     current_date = start_date
-    #
-    #     date_delta = datetime.timedelta(days=1)
-    #     self.news_urls = [[]]
-    #
-    #     while current_date <= end_date:
-    #         news_analyzer = Analyze_news(self.stock_symbol, current_date, self.ai_type, self.analyzing_times, self.log)
-    #         news_analyzer.get_news_for_a_day()
-    #         current_date_string = current_date.strftime("%Y-%m-%d")
-    #
-    #         for current_hour in range(24):
-    #             hourly_urls = []
-    #             try:
-    #                 average_score, hourly_urls = news_analyzer.analyze_for_an_hour(current_hour)
-    #             except openai.error.InvalidRequestError as e:
-    #                 if self.log <= 3:
-    #                     print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
-    #                     print("\nSkipping this news and continuing with the next one.")
-    #                     average_score = -1
-    #                     current_date += date_delta
-    #
-    #             if self.log <= 3:
-    #                 print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from better_news_analysis_in_given_interval())")
-    #
-    #             if average_score != -1:
-    #                 self.news_scores.append(average_score)
-    #
-    #
-    #             else:
-    #                 self.news_scores.append(5)
-    #
-    #             self.news_urls[self.counter_for_analyzed_hours].extend(hourly_urls)
-    #             #self.news_urls.append(hourly_hours)
-    #             self.news_urls.append([])
-    #             self.counter_for_analyzed_hours = self.counter_for_analyzed_hours + 1
-    #
-    #
-    #
-    #         current_date += date_delta
-    #
-    #         #self.news_urls.append([])
-    #
-    #     print(f"\n\n\nNews scores between {self.start_date} and {self.end_date}: {self.news_scores} (better_news_analysis_in_given_interval())")
-    #
-    #
-    #
-    # def set_datetime_index_for_data(self):
-    #     string_index = self.data.index.strftime('%Y-%m-%d %H')
-    #     datetime_index = pd.to_datetime(string_index)
-    #     self.data.index = datetime_index
-    #
-    #     if self.log <= 3:
-    #         print('\ndata:\n')
-    #         print(self.data)
-    #
-    #
-    #
-    #
-    # def set_datetime_index_for_news_scores(self):
-    #     news_scores_with_index = pd.Series(self.news_scores)
-    #
-    #     datetime_strings = []
-    #     current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-    #     interval_in_int = int(self.data_interval[:-1])
-    #
-    #     if self.data_interval.endswith('h'):
-    #         delta = datetime.timedelta(hours=interval_in_int)
-    #     elif self.data_interval.endswith('d'):
-    #         delta = datetime.timedelta(days=interval_in_int)
-    #
-    #     while len(datetime_strings) < len(news_scores_with_index):
-    #         current_hour = current_date.strftime("%H")
-    #         current_date_string = current_date.strftime("%Y-%m-%d")
-    #         datetime_strings.append(f"{current_date_string} {current_hour}")
-    #         current_date += delta
-    #
-    #     index_in_datetime = pd.to_datetime(datetime_strings)
-    #     news_scores_with_index.index = index_in_datetime
-    #
-    #     self.news_scores_with_index = news_scores_with_index
-    #
-    #     if self.log <= 3:
-    #         print(f"\nNews score in indexed series: (message from set_datetime_index_for_news_scores())\n ", self.news_scores_with_index)
-    #
-    #
-    #
-    #
-    # def set_datetime_index_for_news_urls(self):
-    #     news_urls_with_index = {}
-    #
-    #     datetime_strings = []
-    #     current_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-    #     interval_in_int = int(self.data_interval[:-1])
-    #
-    #     if self.data_interval.endswith('h'):
-    #         delta = datetime.timedelta(hours=interval_in_int)
-    #     elif self.data_interval.endswith('d'):
-    #         delta = datetime.timedelta(days=interval_in_int)
-    #
-    #     for urls in self.news_urls:
-    #         current_hour = current_date.strftime("%H")
-    #         current_date_string = current_date.strftime("%Y-%m-%d")
-    #         datetime_strings.append(f"{current_date_string} {current_hour}")
-    #         current_date += delta
-    #
-    #     for i, datetime_string in enumerate(datetime_strings):
-    #         news_urls_with_index[datetime_string] = self.news_urls[i]
-    #
-    #     self.news_urls_with_index = news_urls_with_index
-    #
-    #     if self.log <= 3:
-    #         print(f"\nNews URLs in indexed dictionary: (message from set_datetime_index_for_news_urls())\n ",
-    #               self.news_urls_with_index)
-    #
-    #
-    #
-    # def give_as_many_news_scores_and_urls_as_dataline(self):
-    #     self.set_datetime_index_for_data()
-    #     self.set_datetime_index_for_news_scores()
-    #     self.set_datetime_index_for_news_urls()
-    #
-    #     new_scores = []
-    #     temp_scores = []
-    #
-    #     new_urls = []
-    #     temp_urls = []
-    #
-    #     self.data.index = self.data.index.strftime('%Y-%m-%d %H')
-    #     self.news_scores_with_index.index = self.news_scores_with_index.index.strftime('%Y-%m-%d %H')
-    #
-    #     for index in self.news_scores_with_index.index:
-    #
-    #         if index in self.data.index:
-    #             if temp_scores:  # if temp_scores is not empty
-    #                 temp_scores.append(self.news_scores_with_index.loc[index])
-    #                 average_score = sum(temp_scores) / len(temp_scores)
-    #                 score = average_score
-    #                 temp_scores = []  # reset temp_scores
-    #             else:
-    #                 score = self.news_scores_with_index.loc[index]
-    #
-    #             new_scores.append(score)
-    #         else:
-    #             temp_scores.append(self.news_scores_with_index.loc[index])
-    #
-    #     self.reducated_news_scores = pd.Series(new_scores, index=self.data.index)
-    #
-    #     if self.log <= 3:
-    #         print("\n\nReducated news scores list: (message from give_as_many_news_scores_as_dataline())",
-    #               self.reducated_news_scores)
-    #
-    #
-    #
-    #     for index in self.news_urls_with_index:
-    #         #average_url_list = []
-    #         if index in self.data.index:
-    #             if temp_urls:  # Check if temp_urls has any accumulated URLs
-    #                 # temp_urls.append(self.news_urls_with_index[index])
-    #                 temp_urls.extend(self.news_urls_with_index[index])
-    #                 average_url_list = temp_urls  # Since URLs are not scores, use entire list
-    #                 temp_urls = []  # Reset temp_urls
-    #             else:
-    #                 average_url_list = self.news_urls_with_index[index]
-    #
-    #             new_urls.append(average_url_list)  # Append list of URLs for the data point
-    #
-    #         #ez új:
-    #         else:
-    #             temp_urls.extend(self.news_urls_with_index[index])
-    #
-    #
-    #     self.reducated_news_urls = new_urls  # No need for Series as URLs aren't scores
-    #     if self.log <= 3:
-    #         print("\n\nReducated news URLs list: (message from give_as_many_news_urls_as_dataline())",
-    #               self.reducated_news_urls)
-    #
-    #
-    #
-    #
-    #
-    # def data_maker(self):
-    #     try:
-    #         self.data = yf.download(self.stock_symbol, self.start_date, self.end_date, interval=self.data_interval)
-    #     except Exception as e:
-    #         print(f'Error with downloading data from Yahoo Finance: {e}')
-    #         return -1
-    #     if self.data is None or self.data.empty:
-    #         print("No data was downloaded from yahoo finance. Exiting the program.")
-    #         raise SystemExit("No data was downloaded from yahoo finance. Exiting the program.")
-    #
-    #
-    #     self.better_news_analysis_in_given_interval()
-    #     self.give_as_many_news_scores_and_urls_as_dataline()
-    #     self.data['News scores'] = self.reducated_news_scores
-    #     self.data['News URLs'] = self.reducated_news_urls
-    #     median_analyzing_time = statistics.median(self.analyzing_times)
-    #     if self.log <= 3:
-    #         print('\n\n data: ')
-    #         print(self.data.head(10))
-    #         print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
+
 
 
     def data_maker(self):
-        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.log)
+        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.getnews, self.log)
         self.data_class.data_maker()
         self.data = self.data_class.data
 
@@ -303,22 +101,38 @@ class Env_with_news(gym.Env):
 
         max_balance = self.start_balance * 100  # ha olyan jó lesz, hogy 1000x-esére növelné a pénzt, akkor ezt át kell írni
 
+        if self.getnews == 1:
+            frame = np.array([
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score
+            ])  # known_data_number oszlopa és 6 sora lesz: 1. sor: open, 2.: high, 3.: close, .... és az oszlopok a dátumok száma
 
-        frame = np.array([
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-            # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-            # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-            # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-            # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-            # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
-            # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score
-        ])  # known_data_number oszlopa és 6 sora lesz: 1. sor: open, 2.: high, 3.: close, .... és az oszlopok a dátumok száma
+        if self.getnews == 0:
+            frame = np.array([
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
+            ])  # known_data_number oszlopa és 6 sora lesz: 1. sor: open, 2.: high, 3.: close, .... és az oszlopok a dátumok száma
 
         # myFavouriteVal = [[self.balance / max_balance]]
 
@@ -583,28 +397,54 @@ class Env_with_news(gym.Env):
         if (self.log == 3):
             print('\nlog_one_step_for_csv()')
             print(f'\nself.current_step = {self.current_step} step_data_index = {step_data_index} len(self.step_data) = {len(self.step_trade_data)} message from log_one_step_for_csv()')
-        self.log_frame = self.log_frame._append({
-            'Step': self.current_step,
-            'Time': self.data.index[self.current_step],
-            'Current price': self.current_price,
-            'News': self.data.iloc[self.current_step]['News scores'],
-            'News URLs': self.data.iloc[self.current_step]['News URLs'],
 
-            'Type': self.step_trade_data.iloc[step_data_index]['Type'],
-            'Action': self.step_trade_data.iloc[step_data_index]['Action'],
-            'Possibility': self.step_trade_data.iloc[step_data_index]['Possibility'],
-            'Possibility reason': self.step_trade_data.iloc[step_data_index]['Possibility reason'],
-            'Bought pieces': self.step_trade_data.iloc[step_data_index]['Bought pieces'],
-            'Cost': self.step_trade_data.iloc[step_data_index]['Cost'],
-            'Sold pieces': self.step_trade_data.iloc[step_data_index]['Sold pieces'],
-            'Income': self.step_trade_data.iloc[step_data_index]['Income'],
-            'Total open': self.step_trade_data.iloc[step_data_index]['Total open'],
-            'Total sold': self.step_trade_data.iloc[step_data_index]['Total sold'],
-            'Balance': self.step_trade_data.iloc[step_data_index]['Balance'],
-            'Net worth': self.step_trade_data.iloc[step_data_index]['Net worth'],
+        if self.getnews == 1:
+            self.log_frame = self.log_frame._append({
+                'Step': self.current_step,
+                'Time': self.data.index[self.current_step],
+                'Current price': self.current_price,
+                'News': self.data.iloc[self.current_step]['News scores'],
+                'News URLs': self.data.iloc[self.current_step]['News URLs'],
 
-            'Reward': self.reward
-        }, ignore_index=True)
+                'Type': self.step_trade_data.iloc[step_data_index]['Type'],
+                'Action': self.step_trade_data.iloc[step_data_index]['Action'],
+                'Possibility': self.step_trade_data.iloc[step_data_index]['Possibility'],
+                'Possibility reason': self.step_trade_data.iloc[step_data_index]['Possibility reason'],
+                'Bought pieces': self.step_trade_data.iloc[step_data_index]['Bought pieces'],
+                'Cost': self.step_trade_data.iloc[step_data_index]['Cost'],
+                'Sold pieces': self.step_trade_data.iloc[step_data_index]['Sold pieces'],
+                'Income': self.step_trade_data.iloc[step_data_index]['Income'],
+                'Total open': self.step_trade_data.iloc[step_data_index]['Total open'],
+                'Total sold': self.step_trade_data.iloc[step_data_index]['Total sold'],
+                'Balance': self.step_trade_data.iloc[step_data_index]['Balance'],
+                'Net worth': self.step_trade_data.iloc[step_data_index]['Net worth'],
+
+                'Reward': self.reward
+            }, ignore_index=True)
+
+        if self.getnews == 0:
+            self.log_frame = self.log_frame._append({
+                'Step': self.current_step,
+                'Time': self.data.index[self.current_step],
+                'Current price': self.current_price,
+
+                'Type': self.step_trade_data.iloc[step_data_index]['Type'],
+                'Action': self.step_trade_data.iloc[step_data_index]['Action'],
+                'Possibility': self.step_trade_data.iloc[step_data_index]['Possibility'],
+                'Possibility reason': self.step_trade_data.iloc[step_data_index]['Possibility reason'],
+                'Bought pieces': self.step_trade_data.iloc[step_data_index]['Bought pieces'],
+                'Cost': self.step_trade_data.iloc[step_data_index]['Cost'],
+                'Sold pieces': self.step_trade_data.iloc[step_data_index]['Sold pieces'],
+                'Income': self.step_trade_data.iloc[step_data_index]['Income'],
+                'Total open': self.step_trade_data.iloc[step_data_index]['Total open'],
+                'Total sold': self.step_trade_data.iloc[step_data_index]['Total sold'],
+                'Balance': self.step_trade_data.iloc[step_data_index]['Balance'],
+                'Net worth': self.step_trade_data.iloc[step_data_index]['Net worth'],
+
+                'Reward': self.reward
+            }, ignore_index=True)
+
+
         # else:
         #     print('\nStep data index is out of the range of len(self.step_data')
 

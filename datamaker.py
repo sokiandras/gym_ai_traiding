@@ -8,12 +8,13 @@ from yahoo_fin.stock_info import get_quote_table, get_data
 
 
 class DataMaker():
-    def __init__(self, symbol, start_date, end_date, data_interval, ai_type, log):
+    def __init__(self, symbol, start_date, end_date, data_interval, ai_type, getnews, log):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
         self.data_interval = data_interval
         self.ai_type = ai_type
+        self.getnews = getnews
         self.log = log
 
         self.analyzing_times = []
@@ -234,15 +235,23 @@ class DataMaker():
 
     def data_maker(self):
         self.yf_downloader()
-        self.better_news_analysis_in_given_interval()
-        self.give_as_many_news_scores_and_urls_as_dataline()
-        self.data['News scores'] = self.reducated_news_scores
-        self.data['News URLs'] = self.reducated_news_urls
-        median_analyzing_time = statistics.median(self.analyzing_times)
+
+        if self.getnews == 0:
+            self.set_datetime_index_for_data()
+            self.data.index = self.data.index.strftime('%Y-%m-%d %H')
+
+        if self.getnews == 1:
+            self.better_news_analysis_in_given_interval()
+            self.give_as_many_news_scores_and_urls_as_dataline()
+            self.data['News scores'] = self.reducated_news_scores
+            self.data['News URLs'] = self.reducated_news_urls
+            median_analyzing_time = statistics.median(self.analyzing_times)
+
         if self.log <= 3:
             print('\n\n data: ')
             print(self.data.head(10))
-            print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
+            if self.getnews == 1:
+                print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
 
 
 

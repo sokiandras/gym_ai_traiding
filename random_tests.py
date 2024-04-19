@@ -1,6 +1,7 @@
 import yfinance as yf
 import pandas as pd
 #from env_with_news import Env_with_news
+from newsplease import NewsPlease
 
 input_string = "1h"
 numeric_value = int(input_string[:-1])
@@ -41,6 +42,10 @@ print(str_index)
 
 datalen = len(testdata)
 print("\nLength of data: ", datalen)
+
+
+article = NewsPlease.from_url("https://444.hu/2024/04/19/a-media-es-magyar-peter")
+print('\n',article.maintext)
 
 
 

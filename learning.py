@@ -16,9 +16,10 @@ import gymnasium as gym
 from gymnasium.wrappers import StepAPICompatibility
 
 class Learning():
-    def __init__(self, env, steps):
+    def __init__(self, env, steps, getnews):
         self.env = env
         self.steps = steps
+        self.getnews = getnews
 
         self.vec_env = DummyVecEnv([lambda: self.env])
         print('comment from learning: Vektorizálás kész - környezet kész\n')
@@ -28,14 +29,27 @@ class Learning():
         print('comment from learning: Tanulás kész\n')
 
 
-        modell_folder_path = "D:\Egyetem\Diplomamunka\modells"
-        if not os.path.exists(modell_folder_path):
-            os.makedirs(modell_folder_path)
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        model_filename = f'stock_trading_agent_{timestamp}.zip'
-        self.model_joint = os.path.join(modell_folder_path, model_filename)
-        self.model.save(self.model_joint)
-        print("comment from learning: Modell mentése kész\n")
+
+        if self.getnews == 1:
+            modell_folder_path = "D:\Egyetem\Diplomamunka\modells_with_news"
+            if not os.path.exists(modell_folder_path):
+                os.makedirs(modell_folder_path)
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            model_filename = f'stock_trading_agent_{timestamp}.zip'
+            self.model_joint = os.path.join(modell_folder_path, model_filename)
+            self.model.save(self.model_joint)
+            print("comment from learning: Modell mentése kész\n")
+
+
+        if self.getnews == 0:
+            modell_folder_path = "D:\Egyetem\Diplomamunka\modells_without_news"
+            if not os.path.exists(modell_folder_path):
+                os.makedirs(modell_folder_path)
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            model_filename = f'stock_trading_agent_{timestamp}.zip'
+            self.model_joint = os.path.join(modell_folder_path, model_filename)
+            self.model.save(self.model_joint)
+            print("comment from learning: Modell mentése kész\n")
 
 
     def getmodel(self):
