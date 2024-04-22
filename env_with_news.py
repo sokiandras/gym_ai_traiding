@@ -15,7 +15,7 @@ from threading import Lock
 
 class Env_with_news(gym.Env):
 
-    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, getnews, usage):
+    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, getnews, getindexes, usage):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
@@ -39,6 +39,7 @@ class Env_with_news(gym.Env):
         #self.ai_type = "Gemini"
         self.ai_type = "OpenAI"
         self.getnews = getnews
+        self.getindexes = getindexes
 
         # action space settings
         low_a = np.array([0, 0])
@@ -77,7 +78,7 @@ class Env_with_news(gym.Env):
 
 
     def data_maker(self):
-        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.getnews, self.log)
+        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.getnews, self.getindexes, self.log)
         self.data_class.data_maker()
         self.data = self.data_class.data
 

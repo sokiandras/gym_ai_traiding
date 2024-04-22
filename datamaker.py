@@ -4,17 +4,21 @@ import datetime
 import openai
 import statistics
 from analyze_news import Analyze_news
+from alpha_vantage.techindicators import TechIndicators
+from alpha_vantage.timeseries import TimeSeries
+import requests
 from yahoo_fin.stock_info import get_quote_table, get_data
 
 
 class DataMaker():
-    def __init__(self, symbol, start_date, end_date, data_interval, ai_type, getnews, log):
+    def __init__(self, symbol, start_date, end_date, data_interval, ai_type, getnews, getindexes, log):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
         self.data_interval = data_interval
         self.ai_type = ai_type
         self.getnews = getnews
+        self.getindexes = getindexes
         self.log = log
 
         self.analyzing_times = []
@@ -37,10 +41,11 @@ class DataMaker():
         if self.data is None or self.data.empty:
             print("No data was downloaded from yahoo finance. Exiting the program.")
             raise SystemExit("No data was downloaded from yahoo finance. Exiting the program.")
-
-        print("Yahoo finance data: \n")
-        print(self.data.head())
-
+        if self.log == 3:
+            print("Original Yahoo finance data: from yf_downloader()\n")
+            pd.set_option('display.max_rows', None)
+            print(self.data)
+            pd.reset_option('display.max_rows')
 
 
 
@@ -99,8 +104,8 @@ class DataMaker():
         datetime_index = pd.to_datetime(string_index)
         self.data.index = datetime_index
 
-        if self.log <= 3:
-            print('\ndata:\n')
+        if self.log == 3:
+            print('\ndata: from set_datetime_index_for_data()\n')
             print(self.data)
 
 
@@ -231,6 +236,92 @@ class DataMaker():
 
 
 
+    def sma(self):  #only to see how it looks like without mapping
+        sma, _ = self.tech_indicators.get_sma(symbol='AAPL', interval='60min', time_period=20, series_type='close')
+        sma = sma.reindex(self.date_range)
+        sma = sma.dropna()
+        sma.index = sma.index.strftime('%Y-%m-%d %H')
+        sma, self.data = sma.align(self.data, axis=0, join='inner')
+
+        print('\nSMA values:')
+        pd.set_option('display.max_rows', None)
+        print(sma)
+        pd.reset_option('display.max_rows')
+
+
+
+
+
+
+    def get_one_indicator(self, indicator_name):
+        # Map the indicator names to the corresponding functions
+        indicators = {
+            'sma': self.tech_indicators.get_sma,
+            'ema': self.tech_indicators.get_ema,
+            'kama': self.tech_indicators.get_kama,
+            'rsi': self.tech_indicators.get_rsi,
+            'mom': self.tech_indicators.get_mom,
+            'stoch': self.tech_indicators.get_stoch,
+            'stochf': self.tech_indicators.get_stochf,
+            'bbands': self.tech_indicators.get_bbands,
+            'macdext': self.tech_indicators.get_macdext
+        }
+
+        # Get the function for the specified indicator
+        indicator_func = indicators.get(indicator_name)
+
+        if indicator_func is None:
+            raise ValueError(f'Invalid indicator name: {indicator_name}')
+
+        # Call the function and process the result
+        if indicator_name == 'stoch' or 'stochf': #a stoch-hoz nem kell time period
+            indicator, _ = indicator_func(symbol='AAPL', interval='60min')
+        else:
+            indicator, _ = indicator_func(symbol='AAPL', interval='60min', time_period=20, series_type='close')
+
+
+        indicator = indicator.reindex(self.date_range)
+        indicator = indicator.dropna()
+        indicator.index = indicator.index.strftime('%Y-%m-%d %H')
+        indicator, self.data = indicator.align(self.data, axis=0, join='inner')
+
+        print(f'\n{indicator_name.upper()} values:')
+        pd.set_option('display.max_rows', None)
+        print(indicator)
+        pd.reset_option('display.max_rows')
+
+        return indicator
+
+
+
+    def indexes(self):
+        self.av_api_key = open("AlphaVentage_API_KEY.txt", "r").read()
+        self.tech_indicators = TechIndicators(key=self.av_api_key, output_format='pandas')
+        self.date_range = pd.date_range(start=self.start_date, end=self.end_date, freq='h')
+
+        self.data['EMA'] = self.get_one_indicator('ema')['EMA']
+        self.data['RSI'] = self.get_one_indicator('rsi')['RSI']
+        self.data['MOM'] = self.get_one_indicator('mom')['MOM']
+
+        bbands = self.get_one_indicator('bbands')
+        self.data['Upper Band'] = bbands['Real Upper Band']
+        self.data['Middle Band'] = bbands['Real Middle Band']
+        self.data['Lower Band'] = bbands['Real Lower Band']
+
+        macd = self.get_one_indicator('macdext')
+        self.data['MACD'] = macd['MACD']
+        self.data['MACD Signal'] = macd['MACD_Signal']
+
+        print('\nData with indexes from indexes():')
+        pd.set_option('display.max_rows', None)
+        print(self.data)
+        pd.reset_option('display.max_rows')
+
+        # self.get_one_indicator('stochf')
+
+
+
+
 
 
     def data_maker(self):
@@ -240,6 +331,11 @@ class DataMaker():
             self.set_datetime_index_for_data()
             self.data.index = self.data.index.strftime('%Y-%m-%d %H')
 
+            if self.getindexes == 1:
+                self.indexes()
+
+
+
         if self.getnews == 1:
             self.better_news_analysis_in_given_interval()
             self.give_as_many_news_scores_and_urls_as_dataline()
@@ -247,9 +343,18 @@ class DataMaker():
             self.data['News URLs'] = self.reducated_news_urls
             median_analyzing_time = statistics.median(self.analyzing_times)
 
+            if self.getindexes == 1:
+                self.indexes()
+
+
+
         if self.log <= 3:
-            print('\n\n data: ')
-            print(self.data.head(10))
+            print('\n\n data:  from data_maker()')
+            pd.set_option('display.max_rows', None)
+            pd.set_option('display.max_columns', None)
+            print(self.data)
+            pd.reset_option('display.max_rows')
+            pd.reset_option('display.max_columns')
             if self.getnews == 1:
                 print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
 
@@ -258,46 +363,16 @@ class DataMaker():
 
 
 
+
+
+
+
+
 # Example usage
-# data_maker = DataMaker('AAPL', '2024-04-10', '2024-04-12', '1h', 'OpenAI', 2)
-# #data_maker.yf_downloader()
-# data_maker.data_maker()
+data_maker = DataMaker('AAPL', '2024-04-10', '2024-04-12', '1h', 'OpenAI', 1, 1,2)
+data_maker.data_maker()
 
 
 
 
 
-
-#
-# # Your ALPHA VANTAGE API key
-# api_key = 'YOUR_API_KEY'
-#
-# # Initialize TimeSeries and TechIndicators with your API key
-# ts = TimeSeries(key=api_key, output_format='pandas')
-# ti = TechIndicators(key=api_key, output_format='pandas')
-#
-# # Get daily stock prices for AAPL
-# prices, _ = ts.get_daily(symbol='AAPL', outputsize='full')
-# prices = prices['2024-03-15':'2024-03-19']
-#
-# # Get SMA, EMA, and RSI for AAPL
-# sma, _ = ti.get_sma(symbol='AAPL', interval='60min', time_period=20, series_type='close')
-# ema, _ = ti.get_ema(symbol='AAPL', interval='60min', time_period=20, series_type='close')
-# rsi, _ = ti.get_rsi(symbol='AAPL', interval='60min', time_period=14, series_type='close')
-#
-# # Trim the date range for the indicators to match the prices DataFrame
-# sma = sma['2024-03-15':'2024-03-19']
-# ema = ema['2024-03-15':'2024-03-19']
-# rsi = rsi['2024-03-15':'2024-03-19']
-#
-# # Combine all data into a single DataFrame
-# combined_df = pd.concat([prices, sma, ema, rsi], axis=1)
-# combined_df.columns = ['Open', 'High', 'Low', 'Close', 'Volume', 'SMA', 'EMA', 'RSI']
-#
-# # Display the DataFrame
-# print(combined_df)
-#
-# # Optionally, plot the data
-# combined_df[['Close', 'SMA', 'EMA']].plot(figsize=(10, 5))
-# plt.title('AAPL Prices and Indicators')
-# plt.show()
