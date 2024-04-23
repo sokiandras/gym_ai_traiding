@@ -5,6 +5,7 @@ import openai
 import statistics
 from analyze_news import Analyze_news
 from alpha_vantage.techindicators import TechIndicators
+import sys
 from alpha_vantage.timeseries import TimeSeries
 import requests
 from yahoo_fin.stock_info import get_quote_table, get_data
@@ -41,11 +42,13 @@ class DataMaker():
         if self.data is None or self.data.empty:
             print("No data was downloaded from yahoo finance. Exiting the program.")
             raise SystemExit("No data was downloaded from yahoo finance. Exiting the program.")
-        if self.log == 3:
+        if self.log == 2 or self.log == 3:
             print("Original Yahoo finance data: from yf_downloader()\n")
             pd.set_option('display.max_rows', None)
+            pd.set_option('display.max_columns', None)
             print(self.data)
             pd.reset_option('display.max_rows')
+            pd.reset_option('display.max_columns')
 
 
 
@@ -275,9 +278,17 @@ class DataMaker():
 
         # Call the function and process the result
         if indicator_name == 'stoch' or 'stochf': #a stoch-hoz nem kell time period
-            indicator, _ = indicator_func(symbol='AAPL', interval='60min')
+            try:
+                indicator, _ = indicator_func(symbol='AAPL', interval='60min')
+            except ValueError as e:
+                print(f'Hiba történt az indikátor letöltése közben: {e}, kilépés a programból')
+                sys.exit()
         else:
-            indicator, _ = indicator_func(symbol='AAPL', interval='60min', time_period=20, series_type='close')
+            try:
+                indicator, _ = indicator_func(symbol='AAPL', interval='60min', time_period=20, series_type='close')
+            except ValueError as e:
+                print(f'Hiba történt az indikátor letöltése közben: {e}, kilépés a programból')
+                sys.exit()
 
 
         indicator = indicator.reindex(self.date_range)
@@ -285,10 +296,11 @@ class DataMaker():
         indicator.index = indicator.index.strftime('%Y-%m-%d %H')
         indicator, self.data = indicator.align(self.data, axis=0, join='inner')
 
-        print(f'\n{indicator_name.upper()} values:')
-        pd.set_option('display.max_rows', None)
-        print(indicator)
-        pd.reset_option('display.max_rows')
+        if self.log == 3:
+            print(f'\n{indicator_name.upper()} values:')
+            pd.set_option('display.max_rows', None)
+            print(indicator)
+            pd.reset_option('display.max_rows')
 
         return indicator
 
@@ -312,10 +324,13 @@ class DataMaker():
         self.data['MACD'] = macd['MACD']
         self.data['MACD Signal'] = macd['MACD_Signal']
 
-        print('\nData with indexes from indexes():')
-        pd.set_option('display.max_rows', None)
-        print(self.data)
-        pd.reset_option('display.max_rows')
+        if self.log == 2 or self.log == 3:
+            print('\nData with indexes from indexes():')
+            pd.set_option('display.max_rows', None)
+            pd.set_option('display.max_columns', None)
+            print(self.data)
+            pd.reset_option('display.max_rows')
+            pd.reset_option('display.max_columns')
 
         # self.get_one_indicator('stochf')
 
@@ -369,8 +384,8 @@ class DataMaker():
 
 
 # Example usage
-data_maker = DataMaker('AAPL', '2024-04-10', '2024-04-12', '1h', 'OpenAI', 1, 1,2)
-data_maker.data_maker()
+# data_maker = DataMaker('AAPL', '2024-04-10', '2024-04-12', '1h', 'OpenAI', 0, 1,2)
+# data_maker.data_maker()
 
 
 

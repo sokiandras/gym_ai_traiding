@@ -46,17 +46,31 @@ class Env_with_news(gym.Env):
         high_a = np.array([3, 1])
         self.action_space = gym.spaces.Box(low_a, high_a, dtype=np.float32)  # első dimenzió: 0-3 között bármi = 0-1: elad, 1-2: tart, 2-3: vesz;  második dimenzió: 0-1 között bármi = mekkora hányadát költi a pénzének a műveletre.
 
+
+
         # observation space settings
-        if self.getnews == 1:
-            low_o = 0
-            high_o = 1
+        low_o = 0
+        high_o = 1
+
+        if self.getnews == 1 and self.getindexes == 0:
             shape = (7, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
             self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
-        if self.getnews == 0:
-            low_o = 0
-            high_o = 1
-            shape = (6,self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
+
+        if self.getnews == 0 and self.getindexes == 0:
+            shape = (6,self.known_data_number)
             self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+        if self.getnews == 0 and self.getindexes == 1:
+            shape = (14,self.known_data_number)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+        if self.getnews == 1 and self.getindexes == 1:
+            shape = (15,self.known_data_number)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+
+
+
 
         # data in
         self.data_maker()  # itt tölti le az adatokat és egyesíti a hírekkel
@@ -100,48 +114,88 @@ class Env_with_news(gym.Env):
         max_volume = self.data['Volume'].max()
         max_news_score = 10
 
+        if self.getindexes == 1:
+            max_ema = self.data['EMA'].max()
+            max_rsi = self.data['RSI'].max()
+            max_mom = self.data['MOM'].max()
+            max_upper_band = self.data['Upper Band'].max()
+            max_middle_band = self.data['Middle Band'].max()
+            max_lower_band = self.data['Lower Band'].max()
+            max_macd = self.data['MACD'].max()
+            max_macd_signal = self.data['MACD Signal'].max()
+
+
         max_balance = self.start_balance * 100  # ha olyan jó lesz, hogy 1000x-esére növelné a pénzt, akkor ezt át kell írni
 
-        if self.getnews == 1:
+        if self.getnews == 1 and self.getindexes == 0:
             frame = np.array([
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score
-            ])  # known_data_number oszlopa és 6 sora lesz: 1. sor: open, 2.: high, 3.: close, .... és az oszlopok a dátumok száma
+            ])
 
-        if self.getnews == 0:
+        if self.getnews == 0 and self.getindexes == 0:
             frame = np.array([
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
                 self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
-                # open lenormálva (attól amennyitől ismeri az adatokat a jelenlegi lépésig)
-            ])  # known_data_number oszlopa és 6 sora lesz: 1. sor: open, 2.: high, 3.: close, .... és az oszlopok a dátumok száma
+            ])
 
-        # myFavouriteVal = [[self.balance / max_balance]]
+        if self.getnews == 1 and self.getindexes == 1:
+            frame = np.array([
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score,
 
-        # observation = np.append(frame, myFavouriteVal, axis=1)
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
+            ])
+
+        if self.getnews == 0 and self.getindexes == 1:
+            frame = np.array([
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
+                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
+            ])
+
+        if self.log == 2 or self.log == 3:
+            print('\n\n Observation frame:')
+            print(frame)
+            print('\n')
 
         observation = frame
 
         return observation
+
 
 
 
@@ -399,51 +453,50 @@ class Env_with_news(gym.Env):
             print('\nlog_one_step_for_csv()')
             print(f'\nself.current_step = {self.current_step} step_data_index = {step_data_index} len(self.step_data) = {len(self.step_trade_data)} message from log_one_step_for_csv()')
 
+
+
+        log_frame_base = {
+            'Step': self.current_step,
+            'Time': self.data.index[self.current_step],
+            'Current price': self.current_price,
+            'Type': self.step_trade_data.iloc[step_data_index]['Type'],
+            'Action': self.step_trade_data.iloc[step_data_index]['Action'],
+            'Possibility': self.step_trade_data.iloc[step_data_index]['Possibility'],
+            'Possibility reason': self.step_trade_data.iloc[step_data_index]['Possibility reason'],
+            'Bought pieces': self.step_trade_data.iloc[step_data_index]['Bought pieces'],
+            'Cost': self.step_trade_data.iloc[step_data_index]['Cost'],
+            'Sold pieces': self.step_trade_data.iloc[step_data_index]['Sold pieces'],
+            'Income': self.step_trade_data.iloc[step_data_index]['Income'],
+            'Total open': self.step_trade_data.iloc[step_data_index]['Total open'],
+            'Total sold': self.step_trade_data.iloc[step_data_index]['Total sold'],
+            'Balance': self.step_trade_data.iloc[step_data_index]['Balance'],
+            'Net worth': self.step_trade_data.iloc[step_data_index]['Net worth'],
+            'Reward': self.reward,
+        }
+
+
+
+
         if self.getnews == 1:
-            self.log_frame = self.log_frame._append({
-                'Step': self.current_step,
-                'Time': self.data.index[self.current_step],
-                'Current price': self.current_price,
+            log_frame_base.update({
                 'News': self.data.iloc[self.current_step]['News scores'],
                 'News URLs': self.data.iloc[self.current_step]['News URLs'],
+            })
 
-                'Type': self.step_trade_data.iloc[step_data_index]['Type'],
-                'Action': self.step_trade_data.iloc[step_data_index]['Action'],
-                'Possibility': self.step_trade_data.iloc[step_data_index]['Possibility'],
-                'Possibility reason': self.step_trade_data.iloc[step_data_index]['Possibility reason'],
-                'Bought pieces': self.step_trade_data.iloc[step_data_index]['Bought pieces'],
-                'Cost': self.step_trade_data.iloc[step_data_index]['Cost'],
-                'Sold pieces': self.step_trade_data.iloc[step_data_index]['Sold pieces'],
-                'Income': self.step_trade_data.iloc[step_data_index]['Income'],
-                'Total open': self.step_trade_data.iloc[step_data_index]['Total open'],
-                'Total sold': self.step_trade_data.iloc[step_data_index]['Total sold'],
-                'Balance': self.step_trade_data.iloc[step_data_index]['Balance'],
-                'Net worth': self.step_trade_data.iloc[step_data_index]['Net worth'],
 
-                'Reward': self.reward
-            }, ignore_index=True)
+        if self.getindexes == 1:
+            log_frame_base.update({
+                'EMA': self.data.iloc[self.current_step]['EMA'],
+                'RSI': self.data.iloc[self.current_step]['RSI'],
+                'MOM': self.data.iloc[self.current_step]['MOM'],
+                'Upper Band': self.data.iloc[self.current_step]['Upper Band'],
+                'Middle Band': self.data.iloc[self.current_step]['Middle Band'],
+                'Lower Band': self.data.iloc[self.current_step]['Lower Band'],
+                'MACD': self.data.iloc[self.current_step]['MACD'],
+                'MACD Signal': self.data.iloc[self.current_step]['MACD Signal']
+            })
 
-        if self.getnews == 0:
-            self.log_frame = self.log_frame._append({
-                'Step': self.current_step,
-                'Time': self.data.index[self.current_step],
-                'Current price': self.current_price,
-
-                'Type': self.step_trade_data.iloc[step_data_index]['Type'],
-                'Action': self.step_trade_data.iloc[step_data_index]['Action'],
-                'Possibility': self.step_trade_data.iloc[step_data_index]['Possibility'],
-                'Possibility reason': self.step_trade_data.iloc[step_data_index]['Possibility reason'],
-                'Bought pieces': self.step_trade_data.iloc[step_data_index]['Bought pieces'],
-                'Cost': self.step_trade_data.iloc[step_data_index]['Cost'],
-                'Sold pieces': self.step_trade_data.iloc[step_data_index]['Sold pieces'],
-                'Income': self.step_trade_data.iloc[step_data_index]['Income'],
-                'Total open': self.step_trade_data.iloc[step_data_index]['Total open'],
-                'Total sold': self.step_trade_data.iloc[step_data_index]['Total sold'],
-                'Balance': self.step_trade_data.iloc[step_data_index]['Balance'],
-                'Net worth': self.step_trade_data.iloc[step_data_index]['Net worth'],
-
-                'Reward': self.reward
-            }, ignore_index=True)
+        self.log_frame = self.log_frame._append(log_frame_base, ignore_index=True)
 
 
         # else:

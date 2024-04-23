@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.ticker as ticker
 import os
 import datetime
 import tkinter as tk
@@ -52,6 +53,9 @@ def make_graph(csv_file):
     # plt.xticks(rotation=45)
 
     fig, axs = plt.subplots(4, 1, sharex=True)
+
+    for ax in axs:
+        ax.xaxis.set_major_locator(ticker.AutoLocator())
 
     #subplots:
 
