@@ -7,7 +7,7 @@ from handling_models import ModelHandler
 from sample_env import SampleEnv
 
 
-getnews = 0  # 1: environment with news, 0: environment without news
+getnews = 1  # 1: environment with news, 0: environment without news
 getindexes = 1
 
 learning = 0
