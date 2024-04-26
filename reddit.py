@@ -5,14 +5,21 @@ import requests
 from psaw import PushshiftAPI
 import pandas as pd
 from chatgpt import AI
+from vader_sentiment.vader_sentiment import SentimentIntensityAnalyzer
+from textblob import TextBlob
+from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from scipy.special import softmax
+
 
 
 class Reddit_Scraper():
-    def __init__(self, symbol, start_date, end_date, log):
+    def __init__(self, symbol, start_date, end_date, analyzer_type, log):
         self.start_date = start_date
         self.end_date = end_date
         self.symbol = symbol
         self.log = log
+        self.analyzer_type = analyzer_type
         self.all_posts_from_topic_subreddit = None
         self.all_posts_from_financial_subreddit = None
 
@@ -161,10 +168,59 @@ class Reddit_Scraper():
 
 
 
+    def one_message_analyzer(self):
+        sentence = "It seems that the innovative approach taken by the company is resonating well with investors, potentially leading to a bullish trend in the stock market."
+
+        #if self.analyzer_type == 'TextBlob':
+        print('\nTextBlob: ')
+        result = TextBlob(sentence)
+        print(result.sentiment)
+
+        #if self.analyzer_type == 'Vader':
+        print('\nVader:')
+        analyzer = SentimentIntensityAnalyzer()
+        result = analyzer.polarity_scores(sentence)
+        print(str(result))
+
+        hugging_face_model_name1 = f"NazmusAshrafi/stock_twitter_sentiment_Bert"
+        hugging_face_model_name2 = f"mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis"
+
+        print(f"\nHuggingFace: {hugging_face_model_name1} ")
+        tokenizer = AutoTokenizer.from_pretrained(hugging_face_model_name1)
+        hugging_face_model = AutoModelForSequenceClassification.from_pretrained(hugging_face_model_name1)
+        encoded_text = tokenizer(sentence, return_tensors='pt')
+        output = hugging_face_model(**encoded_text)
+        scores = output[0][0].detach().numpy()
+        scores = softmax(scores)
+        scores_dict = {
+            'negative' : scores[0],
+            'positive' : scores[1]
+        }
+        print(scores_dict)
+
+
+        print(f"\nHuggingFace: {hugging_face_model_name2} ")
+        tokenizer = AutoTokenizer.from_pretrained(hugging_face_model_name2)
+        hugging_face_model = AutoModelForSequenceClassification.from_pretrained(hugging_face_model_name2)
+        encoded_text = tokenizer(sentence, return_tensors='pt')
+        output = hugging_face_model(**encoded_text)
+        scores = output.logits.detach().numpy()
+        scores = softmax(scores)
+        scores_dict = {
+            'negative': scores[0][0],
+            'neutral': scores[0][1],
+            'positive' : scores[0][2]
+        }
+        print(scores_dict)
 
 
 
 
-scraper = Reddit_Scraper('NVDA', '2024-04-15', '2024-04-20', 2)
-scraper.get_posts_from_topic_subreddit(0)
-scraper.get_posts_from_financial_subreddits(0)
+
+
+
+
+scraper = Reddit_Scraper('NVDA', '2024-04-15', '2024-04-20', 'TextBlob', 2)
+# scraper.get_posts_from_topic_subreddit(0)
+# scraper.get_posts_from_financial_subreddits(0)
+scraper.one_message_analyzer()
