@@ -39,13 +39,19 @@ print(str_index)
 
 
 
-
 datalen = len(testdata)
 print("\nLength of data: ", datalen)
 
 
 article = NewsPlease.from_url("https://444.hu/2024/04/19/a-media-es-magyar-peter")
 print('\n',article.maintext)
+
+
+string1 = "\nEz a string eleje"
+string2 = "Ez a string vege"
+string = string1 + " " + string2
+print(string)
+
 
 
 
