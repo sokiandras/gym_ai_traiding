@@ -5,6 +5,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from scipy.special import softmax
 import torch
 from statistics import mean
+import time
 
 
 
@@ -16,10 +17,14 @@ class Comment_Analyzer():
 
 
     def hugging_face_loader(self, hugging_face_model_name, sentence):
-        print(f"\nHuggingFace: {hugging_face_model_name} ")
+        if self.log == 3:
+            print(f"\nHuggingFace: {hugging_face_model_name} ")
         tokenizer = AutoTokenizer.from_pretrained(hugging_face_model_name)
         hugging_face_model = AutoModelForSequenceClassification.from_pretrained(hugging_face_model_name)
-        encoded_text = tokenizer(sentence, return_tensors='pt')
+
+
+        #encoded_text = tokenizer(sentence, return_tensors='pt')
+        encoded_text = tokenizer(sentence, return_tensors='pt', truncation=True, max_length=512)
         output = hugging_face_model(**encoded_text)
 
         return output
@@ -46,7 +51,7 @@ class Comment_Analyzer():
         hugging_face_model_name2 = f"mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis"
         hugging_face_model_name3 = f"nlptown/bert-base-multilingual-uncased-sentiment"
 
-
+        start_time = time.time()
         output1 = self.hugging_face_loader(hugging_face_model_name1, self.sentence)
         scores1 = output1[0][0].detach().numpy()
         scores1 = softmax(scores1)
@@ -54,14 +59,17 @@ class Comment_Analyzer():
             'negative': scores1[0],
             'positive': scores1[1]
         }
-        if self.log == 2 or self.log == 3:
+        end_time = time.time()
+        if self.log == 3:
             print(scores_dict1)
+            print(f"Time taken: {end_time - start_time} s")
         result1 = scores1[1]
         if scores1[0] > scores1[1]:
             result1 = -scores1[0] #inkább negatív
 
 
 
+        start_time = time.time()
         output2 = self.hugging_face_loader(hugging_face_model_name2, self.sentence)
         scores2 = output2.logits.detach().numpy()
         scores2 = softmax(scores2)
@@ -70,17 +78,19 @@ class Comment_Analyzer():
             'neutral': scores2[0][1],
             'positive': scores2[0][2]
         }
-        if self.log == 2 or self.log == 3:
+        end_time = time.time()
+        if self.log == 3:
             print(scores_dict2)
+            print(f"Time taken: {end_time - start_time} s")
         result2 = scores2[0][2]
         if scores2[0][0] > scores2[0][2]:
             result2 = -scores2[0][0]
 
 
-
+        start_time = time.time()
         output3 = self.hugging_face_loader(hugging_face_model_name3, self.sentence)
         scores3 = int(torch.argmax(output3.logits))+1
-        if self.log == 2 or self.log == 3:
+        if self.log == 3:
             print(scores3)
         if scores3 == 3:
             result3 = 0
@@ -90,11 +100,14 @@ class Comment_Analyzer():
             result3 = - scores3 / 5
         if scores3 == 1:
             result3 = -1
+        end_time = time.time()
+        if self.log == 3:
+            print(f"Time taken: {end_time - start_time} s")
 
 
 
         average_result = mean([float(result1), float(result2), float(result3)])
-        if self.log == 2 or self.log == 3:
+        if self.log == 3:
             print(f"\nresult 1: {result1}, result 2: {result2}, result 3: {result3}")
             print(f"\nAverage score: {average_result}\n")
 
