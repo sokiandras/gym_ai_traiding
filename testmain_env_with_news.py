@@ -7,7 +7,7 @@ from handling_models import ModelHandler
 from sample_env import SampleEnv
 
 
-getnews = 0  # 1: environment with news, 0: environment without news
+getnews = 1  # 1: environment with news, 0: environment without news
 getindexes = 1
 
 learning = 0
@@ -15,7 +15,7 @@ learning = 0
 
 # tanításhoz
 if learning == 1:
-    env = Env_with_news('GOOGL','2024-04-22','2024-04-26', 100000, 2, '1h', getnews, getindexes, "learn")
+    env = Env_with_news('AAPL','2024-08-26','2024-08-30', 100000, 2, '1h', getnews, getindexes, "learn")
     wrapped_env = gymnasium.wrappers.EnvCompatibility(env)
     learn = Learning(wrapped_env, 10000, getnews, getindexes)
     learn.save_model()
@@ -29,7 +29,7 @@ model_handler = ModelHandler(sample_env, getnews, getindexes)
 saved_model = model_handler.choose_model()
 
 
-env_with_news = Env_with_news('AAPL','2024-04-22', '2024-04-26',100000,2,'1h', getnews, getindexes, "backtest")
+env_with_news = Env_with_news('AAPL','2024-09-02', '2024-09-06',100000,2,'1h', getnews, getindexes, "backtest")
 Backtest(env = env_with_news, model = saved_model)
 
 
