@@ -11,8 +11,11 @@ class Reddit_Scraper():
     def __init__(self, symbol, start_date, end_date, log):
         self.start_date = start_date
         self.end_date = end_date
+        self.start_date_unix = datetime.datetime.strptime(self.start_date, '%Y-%m-%d').timestamp()
+        self.end_date_unix = datetime.datetime.strptime(self.end_date, '%Y-%m-%d').timestamp()
         self.symbol = symbol
         self.log = log
+        self.temp_collection = None
         self.all_posts_from_topic_subreddit = None
         self.all_posts_from_financial_subreddit = None
 
@@ -53,46 +56,11 @@ class Reddit_Scraper():
             return chosen_subreddit
 
 
+    def go_through_posts(self, submission, comments):
 
+        if self.start_date_unix < submission.created_utc < self.end_date_unix:  # csak akkor analizálunk, ha benne van az időben
 
-    def get_posts_from_topic_subreddit(self, comments):
-        chosen_subreddit = self.topic_subreddit_decider('choose subreddit')
-        start_date_unix = datetime.datetime.strptime(self.start_date, '%Y-%m-%d').timestamp()
-        end_date_unix = datetime.datetime.strptime(self.end_date, '%Y-%m-%d').timestamp()
-        post_collection = {"Title": [], "Subreddit": [], "Post Text": [], "Upvote Ratio": [],"Number of comments": [], "Created at": [], "Post URL": [], "Sentiment score": []}
-
-        # for submission in self.reddit.subreddit("apple").top(limit=None, time_filter="all"):
-
-        for submission in self.reddit.subreddit(chosen_subreddit).new(limit=None):
-            if start_date_unix < submission.created_utc < end_date_unix:  # csak akkor analizálunk, ha benne van az időben
-                if self.log == 2 or self.log == 3:
-                    created_date_normal = datetime.datetime.fromtimestamp(submission.created_utc)
-                    print(f'\n\n\nCreated at: {created_date_normal}')
-                    #print(f'created_utc: {submission.created_utc}')
-                    print(f'Subreddit: {submission.subreddit}')
-                    print(f'Title: {submission.title}')
-                    print(f'Upvote ratio: {submission.upvote_ratio}')
-                    print(f'Post: {submission.selftext}')
-                try:
-                    start_time = time.time()
-                    analyzer = Comment_Analyzer(self.log)
-                    score = analyzer.one_message_analyzer(submission.title + " " + submission.selftext)
-                    end_time = time.time()
-                    time_taken = end_time - start_time
-                    if self.log == 2 or self.log == 3:
-                        print(f'sentiment score: {score}')
-                        print(f'Analyzing time: {time_taken}')
-                except RuntimeError:
-                    continue
-
-                if self.log == 2 or self.log == 3:
-                    print('----------------------------------------------------------------------------------------')
-
-            else:
-                score = None
-                time_taken = None
-
-            if self.log == 2 or self.log == 3:
+            if self.log == 2 or self.log == 3:  # komment mutató
                 if comments == 1:
                     submission.comments.replace_more(limit=None)
                     for first_level_comment in submission.comments:
@@ -102,28 +70,67 @@ class Reddit_Scraper():
                             print(f'level2: {second_level_comment.body}')
                             print('\n')
 
-            if start_date_unix < submission.created_utc < end_date_unix:
-                post_collection["Title"].append(submission.title)
-                post_collection['Subreddit'].append(submission.subreddit)
-                post_collection["Post Text"].append(submission.selftext)
-                post_collection["Upvote Ratio"].append(submission.upvote_ratio)
-                post_collection["Number of comments"].append(submission.num_comments)
-                post_collection["Created at"].append(submission.created_utc)
-                post_collection["Post URL"].append(submission.url)
+            if self.log == 2 or self.log == 3: # képernyőre logoló
+                created_date_normal = datetime.datetime.utcfromtimestamp(submission.created_utc)
+                print(f'\n\n\nCreated at: {created_date_normal}')
+                # print(f'created_utc: {submission.created_utc}')
+                print(f'Subreddit: {submission.subreddit}')
+                print(f'Title: {submission.title}')
+                print(f'Upvote ratio: {submission.upvote_ratio}')
+                print(f'Post: {submission.selftext}')
+
+            try:
+                start_time = time.time()
+                analyzer = Comment_Analyzer(self.log)
+                score = analyzer.one_message_analyzer(submission.title + " " + submission.selftext)
+                end_time = time.time()
+                time_taken = end_time - start_time
+                if self.log == 2 or self.log == 3:
+                    print(f'sentiment score: {score}')
+                    print(f'Analyzing time: {time_taken}')
+            except RuntimeError:
+                return
+
+            if self.log == 2 or self.log == 3:
+                print('----------------------------------------------------------------------------------------')
+
+        else:
+            score = None
+            time_taken = None
+            submission = None
+
+
+        return submission, score
+
+
+
+
+
+
+
+
+
+    def get_posts_from_topic_subreddit(self, comments):
+        chosen_subreddit = self.topic_subreddit_decider('choose subreddit')
+        post_collection = {"Title": [], "Subreddit": [], "Post Text": [], "Upvote Ratio": [],"Number of comments": [], "Created at": [], "Post URL": [], "Sentiment score": []}
+
+        for submission in self.reddit.subreddit(chosen_subreddit).new(limit=None):
+            checked_submission, score = self.go_through_posts(submission, comments)
+            if checked_submission is not None and score is not None:
+                post_collection["Title"].append(checked_submission.title)
+                post_collection['Subreddit'].append(checked_submission.subreddit)
+                post_collection["Post Text"].append(checked_submission.selftext)
+                post_collection["Upvote Ratio"].append(checked_submission.upvote_ratio)
+                post_collection["Number of comments"].append(checked_submission.num_comments)
+                post_collection["Created at"].append(checked_submission.created_utc)
+                post_collection["Post URL"].append(checked_submission.url)
                 post_collection['Sentiment score'].append(score)
 
         all_posts = pd.DataFrame(post_collection)
 
-
-        all_dates = all_posts['Created at'].map(datetime.datetime.fromtimestamp)
-        all_posts = all_posts.assign(Created_at_Normal=all_dates)
+        all_posts['Created at'] = pd.to_datetime(all_posts['Created at'], unit='s', utc=True)
 
         if self.log == 3:
-            # pd.set_option('display.max_rows', None)
-            # print(all_posts['Created_On_Normal'])
-            # print('\n\n')
-            # print(all_posts['Title'])
-            # pd.reset_option('display.max_rows')
             print(f'\n\nAll posts from {chosen_subreddit} subreddit:\n')
             pd.set_option('display.max_rows', None)
             pd.set_option('display.max_columns', None)
@@ -136,66 +143,27 @@ class Reddit_Scraper():
 
 
     def get_posts_from_financial_subreddits(self, comments):
-        start_date_unix = datetime.datetime.strptime(self.start_date, '%Y-%m-%d').timestamp()
-        end_date_unix = datetime.datetime.strptime(self.end_date, '%Y-%m-%d').timestamp()
         if self.log == 2 or self.log == 3:
             print('\n\n\n\nPosts from the following subreddits: \nstocks\nStockMarket\nwallstreetbets\ninvesting')
         choosen_subreddit = self.topic_subreddit_decider('finance subreddit')
         post_collection = {"Title": [], "Subreddit": [], "Post Text": [], "Upvote Ratio": [],"Number of comments": [], "Created at": [], "Post URL": [], "Sentiment score": []}
 
         for submission in self.reddit.subreddit("stocks+StockMarket+wallstreetbets+investing").search(query=choosen_subreddit, sort="new", time_filter="all"):
-            if start_date_unix < submission.created_utc < end_date_unix:  # csak akkor analizálunk, ha benne van az időben
-                if self.log == 2 or self.log == 3:
-                    created_date_normal = datetime.datetime.fromtimestamp(submission.created_utc)
-                    print(f'\n\n\nCreated at: {created_date_normal}')
-                    print(f'Subreddit: {submission.subreddit}')
-                    print(f'Title: {submission.title}')
-                    print(f'Upvote ratio: {submission.upvote_ratio}')
-                    print(f'Post: {submission.selftext}')
-                try:
-                    start_time = time.time()
-                    analyzer = Comment_Analyzer(self.log)
-                    score = analyzer.one_message_analyzer(submission.title + " " + submission.selftext)
-                    end_time = time.time()
-                    time_taken = end_time - start_time
-                    if self.log == 2 or self.log == 3:
-                        print(f'sentiment score: {score}')
-                        print(f'Analyzing time: {time_taken}')
-                except RuntimeError:
-                    continue
+            good_submission, score = self.go_through_posts(submission, comments)
+            if good_submission is not None and score is not None:
+                post_collection["Title"].append(good_submission.title)
+                post_collection['Subreddit'].append(good_submission.subreddit)
+                post_collection["Post Text"].append(good_submission.selftext)
+                post_collection["Upvote Ratio"].append(good_submission.upvote_ratio)
+                post_collection["Number of comments"].append(good_submission.num_comments)
+                post_collection["Created at"].append(good_submission.created_utc)
+                post_collection["Post URL"].append(good_submission.url)
+                post_collection['Sentiment score'].append(score)
 
-                if self.log == 2 or self.log == 3:
-                    print('----------------------------------------------------------------------------------------')
-
-            else:
-                score = None
-                time_taken = None
-
-            if self.log == 2 or self.log == 3:
-                if comments == 1:
-                    submission.comments.replace_more(limit=None)
-                    for first_level_comment in submission.comments:
-                        print(f'level1: {first_level_comment.body}')
-                        print('\n')
-                        for second_level_comment in first_level_comment.replies:
-                            print(f'level2: {second_level_comment.body}')
-                            print('\n')
-
-
-            if start_date_unix < submission.created_utc < end_date_unix:
-                post_collection["Title"].append(submission.title)
-                post_collection['Subreddit'].append(submission.subreddit)
-                post_collection["Post Text"].append(submission.selftext)
-                post_collection["Upvote Ratio"].append(submission.upvote_ratio)
-                post_collection["Number of comments"].append(submission.num_comments)
-                post_collection["Created at"].append(submission.created_utc)
-                post_collection["Post URL"].append(submission.url)
-                post_collection["Sentiment score"].append(score)
 
         all_posts = pd.DataFrame(post_collection)
 
-        all_dates = all_posts['Created at'].map(datetime.datetime.fromtimestamp)
-        all_posts = all_posts.assign(Created_at_Normal=all_dates)
+        all_posts['Created at'] = pd.to_datetime(all_posts['Created at'], unit='s', utc=True)
 
         if self.log == 3:
             print('\n\nAll posts from financial subreddits:\n')
@@ -243,11 +211,11 @@ class Reddit_Scraper():
             print("No data to process into hourly averages.")
             return
 
-        self.merged_posts['Created at'] = pd.to_datetime(self.merged_posts['Created at'], unit = 's')
         self.merged_posts.set_index('Created at', inplace = True)
 
-        first_timestamp = self.merged_posts.index.min()
-        self.hourly_sentiment = self.merged_posts['Sentiment score'].resample('h', origin = first_timestamp).mean()
+        #first_timestamp = self.merged_posts.index.min()
+        #self.hourly_sentiment = self.merged_posts['Sentiment score'].resample('h', origin = first_timestamp).mean()
+        self.hourly_sentiment = self.merged_posts['Sentiment score'].resample('h').mean()
 
         if self.log == 2 or self.log == 3:
             print("\n\nSentiment values hourly: ")
@@ -275,5 +243,5 @@ class Reddit_Scraper():
 
 
 
-scraper = Reddit_Scraper('AAPL', '2024-09-08', '2024-09-10', 3)
-scraper.collect_from_reddit()
+#scraper = Reddit_Scraper('AAPL', '2024-09-08', '2024-09-09', 3)
+#scraper.collect_from_reddit()
