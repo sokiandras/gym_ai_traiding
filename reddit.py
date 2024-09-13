@@ -19,6 +19,8 @@ class Reddit_Scraper():
         self.all_posts_from_topic_subreddit = None
         self.all_posts_from_financial_subreddit = None
 
+        self.score_list = []
+
         with open('Reddit_API_keys.txt', 'r') as api_keys_file:
             keys = api_keys_file.read().splitlines()
 
@@ -234,6 +236,7 @@ class Reddit_Scraper():
         self.merge_collections_from_subreddits()
         self.data_into_hourly_averages()
 
+        self.score_list = self.hourly_sentiment
 
 
 

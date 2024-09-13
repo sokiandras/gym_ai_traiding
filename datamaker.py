@@ -4,6 +4,7 @@ import datetime
 import openai
 import statistics
 from analyze_news import Analyze_news
+from reddit import Reddit_Scraper
 from alpha_vantage.techindicators import TechIndicators
 import sys
 from alpha_vantage.timeseries import TimeSeries
@@ -12,15 +13,16 @@ from yahoo_fin.stock_info import get_quote_table, get_data
 
 
 class DataMaker():
-    def __init__(self, symbol, start_date, end_date, data_interval, ai_type, getnews, getindexes, log):
+    def __init__(self, symbol, start_date, end_date, data_interval, ai_type, getnews, getindexes, getreddit, log):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
         self.data_interval = data_interval
         self.ai_type = ai_type
+        self.log = log
+
         self.getnews = getnews
         self.getindexes = getindexes
-        self.log = log
 
         self.analyzing_times = []
         self.counter_for_analyzed_hours = 0
@@ -28,6 +30,10 @@ class DataMaker():
         self.news_scores = []
         self.news_scores_with_index = pd.DataFrame
         self.reducated_news_scores = pd.DataFrame
+
+        self.getreddit = getreddit
+        self.reddit_scores = None
+        self.reducated_reddit_scores = []
 
 
 
@@ -338,6 +344,46 @@ class DataMaker():
 
 
 
+    def reddit(self):
+        reddit_scraper = Reddit_Scraper(self.stock_symbol, self.start_date, self.end_date, self.log)
+        reddit_scraper.collect_from_reddit()
+        self.reddit_scores = reddit_scraper.score_list
+
+
+    def give_as_many_reddit_scores_as_data(self):
+        reddit_scores_with_index = pd.DataFrame(self.reddit_scores)
+        reddit_scores_with_index.index = pd.to_datetime(reddit_scores_with_index.index)
+        reddit_scores_with_index.index = reddit_scores_with_index.index.strftime('%Y-%m-%d %H')
+
+
+        new_scores = []
+        temp_scores = []
+
+        for index in reddit_scores_with_index.index:
+            if index in self.data.index:
+                if temp_scores:
+                    temp_scores.append(reddit_scores_with_index.loc[index])
+                    temp_scores = pd.DataFrame(temp_scores)
+                    temp_scores.dropna()  #csak a nem nan értékeket rakja bele
+                    average_score = temp_scores.mean()
+                    score = average_score
+                    temp_scores = []
+                else:
+                    score = reddit_scores_with_index.loc[index]
+                new_scores.append(score)
+
+            else:
+                temp_scores.append(reddit_scores_with_index.loc[index])
+
+
+        self.reducated_reddit_scores = pd.DataFrame(new_scores, index = self.data.index)
+
+        if self.log <= 3:
+            print("\n\nReducated Reddit scores list: (message from give_as_many_reddit_scores_as_data())",
+                  self.reducated_reddit_scores)
+
+
+
 
     def data_maker(self):
         self.yf_downloader()
@@ -360,6 +406,10 @@ class DataMaker():
 
             if self.getindexes == 1:
                 self.indexes()
+
+        if self.getreddit == 1:
+            self.reddit()
+            self.give_as_many_reddit_scores_as_data()
 
 
 
@@ -384,8 +434,8 @@ class DataMaker():
 
 
 # Example usage
-# data_maker = DataMaker('AAPL', '2024-04-10', '2024-04-12', '1h', 'OpenAI', 0, 1,2)
-# data_maker.data_maker()
+data_maker = DataMaker('AAPL', '2024-09-08', '2024-09-12', '1h', 'OpenAI', 0, 0,1, 2)
+data_maker.data_maker()
 
 
 
