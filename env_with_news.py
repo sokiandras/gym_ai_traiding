@@ -15,7 +15,7 @@ from threading import Lock
 
 class Env_with_news(gym.Env):
 
-    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, getnews, getindexes, usage):
+    def __init__(self, symbol, start_date, end_date, balance, log, data_interval_like_1h, getnews, getindexes, getreddit, usage):
         self.stock_symbol = symbol
         self.start_date = start_date
         self.end_date = end_date
@@ -40,6 +40,7 @@ class Env_with_news(gym.Env):
         self.ai_type = "OpenAI"
         self.getnews = getnews
         self.getindexes = getindexes
+        self.getreddit = getreddit
 
         # action space settings
         low_a = np.array([0, 0])
@@ -52,20 +53,36 @@ class Env_with_news(gym.Env):
         low_o = 0
         high_o = 1
 
-        if self.getnews == 1 and self.getindexes == 0:
+        if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 0:
             shape = (7, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
             self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
 
-        if self.getnews == 0 and self.getindexes == 0:
+        if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 0:
             shape = (6,self.known_data_number)
             self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
 
-        if self.getnews == 0 and self.getindexes == 1:
+        if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 0:
             shape = (14,self.known_data_number)
             self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
 
-        if self.getnews == 1 and self.getindexes == 1:
+        if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 0:
             shape = (15,self.known_data_number)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+        if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 1:
+            shape = (8, self.known_data_number)  # így az obs_space úgy fog kinézni, hogy az egyik dimenzió 6 (mivel 6 adatot kap meg a yf által letöltött adatokból - 1 időpontra 6 adat van (high, low, stb.), a másik dimenzió pedig a known_data_number (vagyis azok a sorok amikre visszalát)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+        if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 1:
+            shape = (7,self.known_data_number)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+        if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 1:
+            shape = (15,self.known_data_number)
+            self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
+
+        if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 1:
+            shape = (16,self.known_data_number)
             self.observation_space = gym.spaces.Box(low_o, high_o, shape, dtype=np.float32)
 
 
@@ -92,7 +109,7 @@ class Env_with_news(gym.Env):
 
 
     def data_maker(self):
-        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.getnews, self.getindexes, self.log)
+        self.data_class = DataMaker(self.stock_symbol, self.start_date, self.end_date, self.data_interval, self.ai_type, self.getnews, self.getindexes, self.getreddit, self.log)
         self.data_class.data_maker()
         self.data = self.data_class.data
 
@@ -113,6 +130,16 @@ class Env_with_news(gym.Env):
         max_adjclose = self.data['Adj Close'].max()
         max_volume = self.data['Volume'].max()
         max_news_score = 10
+        max_reddit_score = 10
+
+        max_ema = None
+        max_rsi = None
+        max_mom = None
+        max_upper_band = None
+        max_middle_band = None
+        max_lower_band = None
+        max_macd = None
+        max_macd_signal = None
 
         if self.getindexes == 1:
             max_ema = self.data['EMA'].max()
@@ -127,65 +154,174 @@ class Env_with_news(gym.Env):
 
         max_balance = self.start_balance * 100  # ha olyan jó lesz, hogy 1000x-esére növelné a pénzt, akkor ezt át kell írni
 
-        if self.getnews == 1 and self.getindexes == 0:
-            frame = np.array([
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score
-            ])
 
-        if self.getnews == 0 and self.getindexes == 0:
-            frame = np.array([
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
-            ])
+        # Common data columns
+        base_columns = [
+            ('Open', max_open),
+            ('High', max_high),
+            ('Low', max_low),
+            ('Close', max_close),
+            ('Adj Close', max_adjclose),
+            ('Volume', max_volume)
+        ]
 
-        if self.getnews == 1 and self.getindexes == 1:
-            frame = np.array([
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score,
+        # Optional columns
+        news_column = [('News scores', max_news_score)]
+        reddit_column = [('Reddit scores', max_reddit_score)]
+        indexes_columns = [
+            ('EMA', max_ema),
+            ('RSI', max_rsi),
+            ('MOM', max_mom),
+            ('Upper Band', max_upper_band),
+            ('Middle Band', max_middle_band),
+            ('Lower Band', max_lower_band),
+            ('MACD', max_macd),
+            ('MACD Signal', max_macd_signal)
+        ]
 
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
-            ])
+        # Build the frame based on the flags
+        columns = base_columns[:]
+        if self.getnews:
+            columns += news_column
+        if self.getreddit:
+            columns += reddit_column
+        if self.getindexes:
+            columns += indexes_columns
 
-        if self.getnews == 0 and self.getindexes == 1:
-            frame = np.array([
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        # Create the frame
+        frame = np.array([
+            self.data.iloc[self.current_step - self.known_data_number: self.current_step][col].values / max_val
+            for col, max_val in columns
+        ])
 
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
-                self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
-            ])
+        # if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 0:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score
+        #     ])
+        #
+        # if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 0:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #     ])
+        #
+        # if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 0:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score,
+        #
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
+        #     ])
+        #
+        # if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 0:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
+        #     ])
+        #
+        #
+        #
+        # if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 1:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Reddit scores'].values / max_reddit_score
+        #     ])
+        #
+        # if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 1:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Reddit scores'].values / max_reddit_score
+        #     ])
+        #
+        # if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 1:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['News scores'].values / max_news_score,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Reddit scores'].values / max_reddit_score,
+        #
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
+        #     ])
+        #
+        # if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 1:
+        #     frame = np.array([
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Open'].values / max_open,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['High'].values / max_high,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Low'].values / max_low,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Close'].values / max_close,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Adj Close'].values / max_adjclose,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Volume'].values / max_volume,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Reddit scores'].values / max_reddit_score,
+        #
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['EMA'].values / max_ema,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['RSI'].values / max_rsi,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MOM'].values / max_mom,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Upper Band'].values / max_upper_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Middle Band'].values / max_middle_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['Lower Band'].values / max_lower_band,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD'].values / max_macd,
+        #         self.data.iloc[self.current_step - self.known_data_number: self.current_step]['MACD Signal'].values / max_macd_signal
+        #     ])
+
+
+
 
         if self.log == 2 or self.log == 3:
             print('\n\n Observation frame:')
@@ -496,6 +632,11 @@ class Env_with_news(gym.Env):
                 'MACD Signal': self.data.iloc[self.current_step]['MACD Signal']
             })
 
+        if self.getreddit == 1:
+            log_frame_base.update({
+                'Reddit scores': self.data.iloc[self.current_step]['Reddit scores']
+            })
+
         self.log_frame = self.log_frame._append(log_frame_base, ignore_index=True)
 
 
@@ -571,5 +712,5 @@ class Env_with_news(gym.Env):
 # test_env.set_datetime_index_for_news_urls()
 #test_env.give_as_many_news_scores_as_dataline()
 
-#test_env = Env_with_news('AAPL','2023-11-30', '2023-12-02',100000,2,'1h')
+#test_env = Env_with_news('AAPL','2024-09-23', '2024-09-24',100000,2,'1h', 1, 1, 1, 'backtest')
 

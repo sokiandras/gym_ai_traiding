@@ -16,11 +16,12 @@ import gymnasium as gym
 from gymnasium.wrappers import StepAPICompatibility
 
 class Learning():
-    def __init__(self, env, steps, getnews, getindexes):
+    def __init__(self, env, steps, getnews, getindexes, getreddit):
         self.env = env
         self.steps = steps
         self.getnews = getnews
         self.getindexes = getindexes
+        self.getreddit = getreddit
 
         self.vec_env = DummyVecEnv([lambda: self.env])
         print('comment from learning: Vektorizálás kész - környezet kész\n')
@@ -33,20 +34,36 @@ class Learning():
 
 
     def save_model(self):
-        if self.getnews == 1 and self.getindexes == 0:
-            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\modells_with_news_without_indexes"
+        if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 0:
+            modell_folder_path = r"D:\Egyetem\Diplomamunka\modells\news"
 
 
-        if self.getnews == 0 and self.getindexes == 0:
-            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\modells_without_news_without_indexes"
+        if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 0:
+            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\only prices"
 
 
-        if self.getnews == 0 and self.getindexes == 1:
-            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\modells_without_news_with_indexes"
+        if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 0:
+            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\indexes"
 
 
-        if self.getnews == 1 and self.getindexes == 1:
-            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\modells_with_news_with_indexes"
+        if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 0:
+            modell_folder_path = r"D:\Egyetem\Diplomamunka\modells\news and indexes"
+
+
+        if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 1:
+            modell_folder_path = r"D:\Egyetem\Diplomamunka\modells\news and reddit"
+
+
+        if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 1:
+            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\prices and reddit"
+
+
+        if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 1:
+            modell_folder_path = "D:\Egyetem\Diplomamunka\modells\indexes and reddit"
+
+
+        if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 1:
+            modell_folder_path = r"D:\Egyetem\Diplomamunka\modells\news and indexes and reddit"
 
 
 

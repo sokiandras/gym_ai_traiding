@@ -52,7 +52,9 @@ class Reddit_Scraper():
             for i, subreddit in enumerate(subreddit_list):
                 print(f'{i + 1}. {subreddit.display_name}')
 
+            #!!!!! itt bypass-oltam a subreddit választást
             choice = int(input("Enter the number of the subreddit you want to choose: ")) - 1
+            #choice = 2
             chosen_subreddit = subreddit_list[choice].display_name
             print(f'You have chosen: r/{chosen_subreddit} subreddit\n\n')
             return chosen_subreddit
@@ -208,7 +210,7 @@ class Reddit_Scraper():
 
 
 
-    def data_into_hourly_averages(self):  # NEM JÓ TELJESEN !!!!!!
+    def data_into_hourly_averages(self):  # NEM JÓ TELJESEN !!!!!! - most már igen :)
         if self.merged_posts.empty:
             print("No data to process into hourly averages.")
             return

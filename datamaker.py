@@ -378,6 +378,9 @@ class DataMaker():
 
         self.reducated_reddit_scores = pd.DataFrame(new_scores, index = self.data.index)
 
+        mean_reddit_score = self.reducated_reddit_scores.mean()
+        self.reducated_reddit_scores.fillna(mean_reddit_score, inplace=True)
+
         if self.log <= 3:
             print("\n\nReducated Reddit scores list: (message from give_as_many_reddit_scores_as_data())",
                   self.reducated_reddit_scores)
@@ -410,6 +413,7 @@ class DataMaker():
         if self.getreddit == 1:
             self.reddit()
             self.give_as_many_reddit_scores_as_data()
+            self.data['Reddit scores'] = self.reducated_reddit_scores
 
 
 
@@ -434,8 +438,8 @@ class DataMaker():
 
 
 # Example usage
-data_maker = DataMaker('AAPL', '2024-09-08', '2024-09-12', '1h', 'OpenAI', 0, 0,1, 2)
-data_maker.data_maker()
+#data_maker = DataMaker('AAPL', '2024-09-19', '2024-09-20', '1h', 'OpenAI', 1, 0,1, 3)
+#data_maker.data_maker()
 
 
 

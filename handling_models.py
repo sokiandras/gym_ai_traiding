@@ -1,3 +1,5 @@
+import os.path
+
 import env_with_news
 import tkinter as tk
 from tkinter import filedialog
@@ -6,11 +8,12 @@ from env_with_news import Env_with_news
 
 
 class ModelHandler:
-    def __init__(self, env, getnews, getindexes):
+    def __init__(self, env, getnews, getindexes, getreddit):
         self.model_path = None
         self.env = env
         self.getnews = getnews
         self.getindexes = getindexes
+        self.getreddit = getreddit
 
 
 
@@ -18,17 +21,41 @@ class ModelHandler:
         root = tk.Tk()
         root.wm_withdraw()
 
-        if self.getnews == 1 and self.getindexes == 0:
-            base_folder = "D:\Egyetem\Diplomamunka\modells\modells_with_news_without_indexes"
 
-        if self.getnews == 0 and self.getindexes == 0:
-            base_folder = "D:\Egyetem\Diplomamunka\modells\modells_without_news_without_indexes"
+        if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 0:
+            base_folder = r"D:\Egyetem\Diplomamunka\modells\news"
 
-        if self.getnews == 0 and self.getindexes == 1:
-            base_folder = "D:\Egyetem\Diplomamunka\modells\modells_without_news_with_indexes"
 
-        if self.getnews == 1 and self.getindexes == 1:
-            base_folder = "D:\Egyetem\Diplomamunka\modells\modells_with_news_with_indexes"
+        if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 0:
+            base_folder = "D:\Egyetem\Diplomamunka\modells\only prices"
+
+
+        if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 0:
+            base_folder = "D:\Egyetem\Diplomamunka\modells\indexes"
+
+
+        if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 0:
+            base_folder = r"D:\Egyetem\Diplomamunka\modells\news and indexes"
+
+
+        if self.getnews == 1 and self.getindexes == 0 and self.getreddit == 1:
+            base_folder = r"D:\Egyetem\Diplomamunka\modells\news and reddit"
+
+
+        if self.getnews == 0 and self.getindexes == 0 and self.getreddit == 1:
+            base_folder = "D:\Egyetem\Diplomamunka\modells\prices and reddit"
+
+
+        if self.getnews == 0 and self.getindexes == 1 and self.getreddit == 1:
+            base_folder = "D:\Egyetem\Diplomamunka\modells\indexes and reddit"
+
+
+        if self.getnews == 1 and self.getindexes == 1 and self.getreddit == 1:
+            base_folder = r"D:\Egyetem\Diplomamunka\modells\news and indexes and reddit"
+
+
+        if not os.path.exists(base_folder):
+            raise FileNotFoundError(f"The base folder for the modells ({base_folder}) does not exists")
 
 
         self.model_path = filedialog.askopenfilename(initialdir=base_folder)

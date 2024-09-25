@@ -107,11 +107,14 @@ class Comment_Analyzer():
 
 
         average_result = mean([float(result1), float(result2), float(result3)])
+        result = (average_result + 1) * 5
+
         if self.log == 3:
             print(f"\nresult 1: {result1}, result 2: {result2}, result 3: {result3}")
             print(f"\nAverage score: {average_result}\n")
+            print(f"\nResult from 0 to 10: {result}\n")
 
-        return average_result
+        return result
 
 
 
