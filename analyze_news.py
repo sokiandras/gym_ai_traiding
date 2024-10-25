@@ -78,9 +78,12 @@ class Analyze_news():
                 print(f"\n\n\nThere were no analyzable news in hour {hour} (message from analyze_for_an_hour())")
             return -1, []
 
-# test = Analyze_news('AAPL', '2024-03-06', log=3)
-# # average_score = test.analyze()
-# # print("\nAverage score: ", average_score)
+
+
+
+# analyzing_times = []
+# test = Analyze_news('AAPL', '2024-10-23', "OpenAI", analyzing_times, log=3)
 # test.get_news_for_a_day()
-# average_score2 = test.analyze_for_an_hour(13)
-# print("\nAverage score 2: ", average_score2)
+# average_score = test.analyze_for_an_hour(14)
+# print("\nAverage score: ", average_score)
+# print("\nAnalyzing times: ", analyzing_times)

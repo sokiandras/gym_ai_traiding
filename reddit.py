@@ -53,8 +53,8 @@ class Reddit_Scraper():
                 print(f'{i + 1}. {subreddit.display_name}')
 
             #!!!!! itt bypass-oltam a subreddit választást
-            choice = int(input("Enter the number of the subreddit you want to choose: ")) - 1
-            #choice = 2
+            #choice = int(input("Enter the number of the subreddit you want to choose: ")) - 1
+            choice = 2
             chosen_subreddit = subreddit_list[choice].display_name
             print(f'You have chosen: r/{chosen_subreddit} subreddit\n\n')
             return chosen_subreddit

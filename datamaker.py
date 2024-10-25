@@ -426,6 +426,8 @@ class DataMaker():
             pd.reset_option('display.max_columns')
             if self.getnews == 1:
                 print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
+                print(f'\n\n Number of news collected: {len(self.analyzing_times)} \n\n')
+                print(f'\n\n Average points: {statistics.mean(self.reducated_news_scores)} \n\n')
 
 
 
@@ -436,10 +438,9 @@ class DataMaker():
 
 
 
-
-# Example usage
-#data_maker = DataMaker('AAPL', '2024-09-19', '2024-09-20', '1h', 'OpenAI', 1, 0,1, 3)
-#data_maker.data_maker()
+#Example usage
+# data_maker = DataMaker('AAPL', '2024-10-07', '2024-10-11', '1h', 'Pawan_Osman', 1, 0,0, 2)
+# data_maker.data_maker()
 
 
 

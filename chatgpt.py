@@ -1,6 +1,9 @@
 import openai
+#from openai import OpenAI
 import requests
 import google.generativeai as genai
+import statistics
+import time
 
 class AI():
     def __init__(self, api_type):
@@ -14,10 +17,14 @@ class AI():
             self.api_key = open("Pawan_Osman_API_KEY.txt", "r").read()
             #openai.api_base = 'https://api.pawan.krd/v1'
             openai.api_base = 'https://api.pawan.krd/pai-001-light-beta/v1'
+            #openai.api_base = 'https://api.pawan.krd/v1/chat/completions'
 
         elif self.api_type == 'Gemini':
             self.api_key = open("Google_Gemini_API_KEY.txt", "r").read()
             genai.configure (api_key = self.api_key)
+
+        elif self.api_type == 'OpenAI_4o':
+            self.api_type = open('gpt_49_key.txt''r').read()
 
         openai.api_key = self.api_key
 
@@ -26,9 +33,13 @@ class AI():
     def chat(self,message):
 
         if self.api_type == "OpenAI":
+            # response = openai.ChatCompletion.create(
+            #     model ="gpt-3.5-turbo",
+            #     messages = [{"role": "user", "content": message}]
+            # )
             response = openai.ChatCompletion.create(
-                model ="gpt-3.5-turbo",
-                messages = [{"role": "user", "content": message}]
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": message}]
             )
             response_message = response['choices'][0]['message']['content']
 
@@ -37,11 +48,34 @@ class AI():
 
 
 
+        if self.api_type == 'OpenAI_4o':
+            client = OpenAI(
+                organisation ='org-K8gxZ6DRurWmIuEkRMGMPej1',
+                project='proj_WRGIVD3vgYodfW4ALBHpFgbD'
+            )
+            completion = client.chat.completions.create(
+                model ="gpt-4o",
+                message = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {
+                        "role": "user",
+                        "content": message
+                    }
+                ]
+            )
+            response = completion.choices[0].message
+
+
+
         elif self.api_type =='Pawan_Osman':
             response = openai.ChatCompletion.create(
                 model="pai-001-beta",
                 messages=[{"role": "user", "content": message}]
             )
+            # response = openai.ChatCompletion.create(
+            #     model="gpt-3.5-turbo",
+            #     messages=[{"role": "user", "content": message}]
+            # )
             response_message = response['choices'][0]['message']['content']
 
             total_tokens = response['usage']['total_tokens']
@@ -74,7 +108,8 @@ class AI():
                     "threshold": "BLOCK_ONLY_HIGH"
                 },
             ]
-            model = genai.GenerativeModel(model_name="gemini-1.0-pro", generation_config=generation_config, safety_settings=safety_settings)
+            #model = genai.GenerativeModel(model_name="gemini-1.0-pro", generation_config=generation_config, safety_settings=safety_settings)
+            model = genai.GenerativeModel(model_name="gemini-1.5-flash-002", generation_config=generation_config, safety_settings=safety_settings)
 
             prompt_parts = [message]
             response = model.generate_content(prompt_parts)
@@ -99,32 +134,63 @@ class AI():
 
 
 
-    def analyze_sentiment_from_file(self, file_path):
-        with open(file_path, "r", encoding="utf-8") as file:
-            text = file.read()
-            response_chat = self.analyze_sentiment_chat(text)
-            print('chat response: ', response_chat,'\n')
-
-            if(response_chat.isdigit()):
-                score = int(response_chat)
-            else:
-                print('The response is not a digit')
-                score = -1
-            return score
 
 
+    def read_news_from_file(self, file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        news_items = content.split('--')
+        return [news.strip() for news in news_items if news.strip()]
+
+    def analyze_news_file(self, file_path):
+        news_items = self.read_news_from_file(file_path)
+        index = 0
+        results = []
+        while index < len(news_items):
+            text = news_items[index]
+            response = self.analyze_sentiment_chat(text)
+            try:
+                score = float(response)
+                results.append(score)
+                #print(f"Sentiment Score: {score}\n")
+            except ValueError:
+                print(f"Invalid response: {response}\n")
+            index += 1
+            if self.api_type == "Pawan_Osman":
+                time.sleep(5)
+
+        if results:
+            average_result = statistics.mean(results)
+            print('Average result: ', average_result)
+            print('\n')
+        else:
+            print('No valid sentiment scores to calculate average')
 
 
 
-#ai = AI("NovaAI")
-#ai = AI("Pawan_Osman")
-#ai = AI("OpenAI")
-#message = "what does BNG in telco industry means?"
-#response, total_tokens, cost = ai.chat(message)
 
+# ai = AI("OpenAI")
+
+
+# message = "what does BNG in telco industry means?"
+# response, total_tokens, cost = ai.chat(message)
+#response = ai.analyze_sentiment_chat(message)
 #print("Response: ", response)
-#print("Tokens: ", total_tokens)
+# print("Tokens: ", total_tokens)
 #print("Cost: ", cost, "USD")
+
+
+
+# good_news_file = 'jó_hírek.txt'
+# bad_news_file = 'rossz_hírek.txt'
+# for i in range(0,5):
+#     print("Analyzing good news:")
+#     ai.analyze_news_file(good_news_file)
+#
+#     print("\nAnalyzing bad news:")
+#     ai.analyze_news_file(bad_news_file)
+#
+#     print('\n-------------------\n')
 
 
 #file_path = "D:\\Egyetem\\Önlab\\onlab2\\cikkek\\svb.txt"
