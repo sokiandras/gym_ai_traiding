@@ -17,20 +17,34 @@ class Analyze_news():
         self.analyzing_times = analyzing_times
         self.news = None
 
+        # self.total_articles_in_the_hour = 0
+        # self.articles_with_maintext_in_the_hour = 0
+        self.articles_without_maintext_in_the_hour = 0
+        self.number_of_news_in_a_day = 0
+        self.articles_cant_be_analyzed = 0
+
     def get_news_for_a_day(self):
         self.news = News('NewsAPI', self.log)
         self.news.search_news_for_a_day(self.symbol, self.date)
+        self.number_of_news_in_a_day = self.news.number_of_news_in_a_day
 
 
     def analyze_for_an_hour(self, hour):
         ai = AI(self.ai_type)
         self.scores.clear()
 
+        # self.news.total_articles = 0
+        # self.news.articles_with_maintext = 0
+
         there_are_articles_in_the_hour = self.news.filter_news_for_hour(hour)
         if there_are_articles_in_the_hour:
             there_are_full_texts_in_the_hour = self.news.get_full_texts_from_an_hour()
+            #self.total_articles_in_the_hour = self.news.number_of_total_articles
+            #self.articles_with_maintext_in_the_hour = self.news.number_of_articles_with_full_texts
+            self.articles_without_maintext_in_the_hour = self.news.number_of_articles_without_texts
+
             if there_are_full_texts_in_the_hour:
-                max_retries=5
+                max_retries=6
 
                 for i in range(max_retries):
                     try:
@@ -44,6 +58,7 @@ class Analyze_news():
                             try:
                                 sentiment_score_float = float(sentiment_score)
                             except ValueError:
+                                self.articles_cant_be_analyzed += 1
                                 sentiment_score_float = 5
                             if self.log == 2 or self.log == 3:
                                 print(f"\n\n\nSentiment score for Article {i + 1}: title: {article_title}, score: {sentiment_score}, time: {time_took}s (analyze_for_an_hour())")
@@ -65,6 +80,8 @@ class Analyze_news():
                     print(f"\nScore list from hour {hour}: {self.scores} (message from analyze_for_an_hour())")
 
                 average_score = statistics.mean(self.scores)
+                # self.total_articles_in_the_hour = self.news.total_articles
+                # self.articles_with_maintext_in_the_hour = self.news.articles_with_maintext
                 return average_score, hourly_urls
 
             else:
@@ -76,7 +93,9 @@ class Analyze_news():
         else:
             if self.log == 2 or self.log == 3:
                 print(f"\n\n\nThere were no analyzable news in hour {hour} (message from analyze_for_an_hour())")
-            return -1, []
+            return -1,
+
+
 
 
 

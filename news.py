@@ -5,6 +5,7 @@ import requests
 from newsplease import NewsPlease
 from analyzed_news_class import One_News
 import sys
+from chatgpt import AI
 
 
 
@@ -39,8 +40,22 @@ class News():
         self.articles_in_an_hour_titles =[]
         self.articles_in_an_hour_contents = []
 
+        self.number_of_news_in_a_day = 0
+        #self.total_articles = 0
+        #self.articles_with_maintext = 0
+        self.number_of_articles_without_texts = 0 # only for statistics for the paper
+        # self.number_of_articles_with_full_texts = 0
+        # self.number_of_total_articles = 0
 
 
+
+    def company_decider(self):
+        ai = AI('OpenAI')
+        message = f'What is the company name associated with the ticker "{self.symbol}"? Please provide the company name without any additional text such as "Inc." or similar variations.'
+        company_name, _, _ = ai.chat(message)
+        if self.log <= 3:
+            print(f'\nthe company for the ticker {self.symbol} is {company_name}')
+        return company_name
 
 
     def search_news_for_a_day(self, symbol, date):
@@ -50,7 +65,11 @@ class News():
         if (self.api_type == "NewsAPI"):
             base_url = 'https://newsapi.org/v2/everything?'
 
-        query = f'q={self.symbol}'
+        company_name = self.company_decider()
+
+        #query = f'q={self.symbol}'
+        query = f'q={company_name}'
+
         from_date = f'from={self.date}'
         end_date = f'to={self.date}'
         sort_by = 'sortBy=popularity'
@@ -66,9 +85,13 @@ class News():
             return -1
 
         self.all_news_in_a_day = response.json()
+        self.number_of_news_in_a_day = self.all_news_in_a_day.get('totalResults', 'N/A')
         if self.log == 3:
             print("All news from the day: (given by NewsAPI) (message from search_news_for_a_day())\n")
             print(self.all_news_in_a_day)
+            print(f"\nNumber of news on the day: {self.number_of_news_in_a_day} ")
+        if self.log == 2:
+            print(f"\nNumber of news on the day: {self.number_of_news_in_a_day} ")
 
         if self.all_news_in_a_day['status'] == 'ok':
             self.all_articles_in_a_day = self.all_news_in_a_day['articles']
@@ -120,10 +143,12 @@ class News():
 
         urls_without_full_text = []
         for current_article_url in self.articles_in_an_hour_urls:
+            #self.total_articles += 1
             try:
                 article = NewsPlease.from_url(current_article_url)
                 self.articles_in_an_hour_titles.append(article.title)
                 self.articles_in_an_hour_contents.append(article.maintext)
+                #self.articles_with_maintext += 1
                 if self.log == 3:
                     print("\nCurrent article URL: ", current_article_url)
                     print('\nArticle title: ', article.title)
@@ -150,6 +175,11 @@ class News():
             if(self.log == 3):
                 print("\nThere were no content in the article (message from get_full_texts_from_an_hour()")
             return 0
+
+
+        self.number_of_articles_without_texts = len(urls_without_full_text)  #only for statistics for the paper
+        # self.number_of_articles_with_full_texts = len(self.articles_in_an_hour_urls)
+        # self.number_of_total_articles = len(self.articles_in_an_hour)
 
         return 1
 

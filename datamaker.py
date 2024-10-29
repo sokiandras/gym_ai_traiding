@@ -30,6 +30,11 @@ class DataMaker():
         self.news_scores = []
         self.news_scores_with_index = pd.DataFrame
         self.reducated_news_scores = pd.DataFrame
+        # self.total_articles = 0
+        # self.articles_with_maintext = 0
+        self.articles_without_maintext = 0
+        self.number_of_news_overall = 0
+        self.articles_cant_be_analyzed = 0
 
         self.getreddit = getreddit
         self.reddit_scores = None
@@ -65,23 +70,29 @@ class DataMaker():
         current_date = start_date
 
         date_delta = datetime.timedelta(days=1)
-        self.news_urls = [[]]
+        #self.news_urls = [[]]
+        self.news_urls = [[] for _ in range(24 * ((end_date - start_date).days + 1))]
 
         while current_date <= end_date:
             news_analyzer = Analyze_news(self.stock_symbol, current_date, self.ai_type, self.analyzing_times, self.log)
             news_analyzer.get_news_for_a_day()
+            self.number_of_news_overall += news_analyzer.number_of_news_in_a_day
             current_date_string = current_date.strftime("%Y-%m-%d")
 
             for current_hour in range(24):
                 hourly_urls = []
                 try:
                     average_score, hourly_urls = news_analyzer.analyze_for_an_hour(current_hour)
+                    # self.total_articles += news_analyzer.total_articles_in_the_hour
+                    #self.articles_with_maintext += news_analyzer.articles_with_maintext_in_the_hour
+                    self.articles_without_maintext += news_analyzer.articles_without_maintext_in_the_hour
+                    self.articles_cant_be_analyzed = news_analyzer.articles_cant_be_analyzed
                 except openai.error.InvalidRequestError as e:
                     if self.log <= 3:
                         print(f"\nError occurred while analyzing news: {str(e)} news details: {current_date}, hour: {current_hour}")
                         print("\nSkipping this news and continuing with the next one.")
-                        average_score = -1
-                        current_date += date_delta
+                    average_score = -1
+                    current_date += date_delta
 
                 if self.log <= 3:
                     print(f"\nAnalysis for {current_date_string} - hour: {current_hour} - result score: {average_score} (message from better_news_analysis_in_given_interval())")
@@ -102,9 +113,12 @@ class DataMaker():
 
             current_date += date_delta
 
-            #self.news_urls.append([])
+
 
         print(f"\n\n\nNews scores between {self.start_date} and {self.end_date}: {self.news_scores} (better_news_analysis_in_given_interval())")
+
+        #if self.log == 2 or self.log == 3:
+            #print(f'\nTotal number of articles: {self.total_articles}\n articles with texts from NewsPlease: {self.articles_with_maintext}\nArticles without text: {self.total_articles-self.articles_with_maintext}\n\n')
 
 
 
@@ -387,6 +401,32 @@ class DataMaker():
 
 
 
+    def statistics_writer(self):
+        if self.log <= 3:
+            print('\n\n data:  from data_maker()')
+            pd.set_option('display.max_rows', None)
+            pd.set_option('display.max_columns', None)
+            print(self.data)
+            pd.reset_option('display.max_rows')
+            pd.reset_option('display.max_columns')
+
+
+            if self.getnews == 1:
+                median_analyzing_time = statistics.median(self.analyzing_times)
+
+                print(f'\n\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n')
+                print(f'All news: {self.number_of_news_overall}')
+                print(f'\n Number of news analyzed: {len(self.analyzing_times)} \n')
+                print(f'\nArticles without text: {self.articles_without_maintext}\n\n')
+                print(f"\nArticles can't be analyzed: {self.articles_cant_be_analyzed}")
+                print(f'\n Average points: {statistics.mean(self.reducated_news_scores)} \n')
+                #print(f'\n Total articles:: {self.total_articles} \n')
+                #print(f'\nArticles with texts from NewsPlease: {self.articles_with_maintext}\n')
+                print(f'\nNews URLs: {len(self.news_urls)}\n\n')
+
+
+
+
 
     def data_maker(self):
         self.yf_downloader()
@@ -405,7 +445,7 @@ class DataMaker():
             self.give_as_many_news_scores_and_urls_as_dataline()
             self.data['News scores'] = self.reducated_news_scores
             self.data['News URLs'] = self.reducated_news_urls
-            median_analyzing_time = statistics.median(self.analyzing_times)
+            #median_analyzing_time = statistics.median(self.analyzing_times)
 
             if self.getindexes == 1:
                 self.indexes()
@@ -416,18 +456,23 @@ class DataMaker():
             self.data['Reddit scores'] = self.reducated_reddit_scores
 
 
+        self.statistics_writer()
 
-        if self.log <= 3:
-            print('\n\n data:  from data_maker()')
-            pd.set_option('display.max_rows', None)
-            pd.set_option('display.max_columns', None)
-            print(self.data)
-            pd.reset_option('display.max_rows')
-            pd.reset_option('display.max_columns')
-            if self.getnews == 1:
-                print(f'\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n\n')
-                print(f'\n\n Number of news collected: {len(self.analyzing_times)} \n\n')
-                print(f'\n\n Average points: {statistics.mean(self.reducated_news_scores)} \n\n')
+        # if self.log <= 3:
+        #     print('\n\n data:  from data_maker()')
+        #     pd.set_option('display.max_rows', None)
+        #     pd.set_option('display.max_columns', None)
+        #     print(self.data)
+        #     pd.reset_option('display.max_rows')
+        #     pd.reset_option('display.max_columns')
+        #     if self.getnews == 1:
+        #         print(f'\n\n\n Average (median) time for analyzing 1 news: {median_analyzing_time} \n')
+        #         print(f'\n Number of news collected: {len(self.analyzing_times)} \n')
+        #         print(f'\n Average points: {statistics.mean(self.reducated_news_scores)} \n')
+        #         print(f'\n Number of news collected: {len(self.analyzing_times)} \n')
+        #         print(f'\n\n Total articles:: {self.total_articles} \n')
+        #         print(f'\nArticles with texts from NewsPlease: {self.articles_with_maintext}\n')
+        #         print(f'\nArticles without text: {self.total_articles - self.articles_with_maintext}\n\n')
 
 
 
@@ -439,8 +484,8 @@ class DataMaker():
 
 
 #Example usage
-# data_maker = DataMaker('AAPL', '2024-10-07', '2024-10-11', '1h', 'Pawan_Osman', 1, 0,0, 2)
-# data_maker.data_maker()
+data_maker = DataMaker('TSLA', '2024-10-03', '2024-10-07', '1h', 'OpenAI', 1, 0,0, 2)
+data_maker.data_maker()
 
 
 
